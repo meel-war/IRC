@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <set>
+#include <algorithm>
 #include "User.hpp"
 
 class Channel {
