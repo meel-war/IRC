@@ -6,25 +6,25 @@
 
 class Channel;
 
-class User {
+class Client {
 
     private:
         std::string _nickname;
-        std::string _username;
+        std::string _clientname;
         bool _has_pass;
         bool _has_nick;
-        bool _has_user;
+        bool _has_client;
         std::set<Channel*> _joinedChannels;
         int _client_fd;
 
     public:
-        User(int fd);
+        Client(int fd);
         void joinChannel(Channel* channel);
         const std::string& getNickname() const;
-        const std::string& getUsername() const;
+        const std::string& getClientname() const;
         void setNickname(std::string& nickname);
-        void setUsername(std::string& username);
+        void setClientname(std::string& clientname);
         bool hasPass() const;
         bool hasNick() const;
-        bool hasUser() const;
+        bool hasClient() const;
 };
