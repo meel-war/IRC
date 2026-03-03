@@ -23,7 +23,7 @@ Server::Server(const std::string &port, const std::string &password)
     if(listen(_server_fd, 4096) < 0) // met le socket_serv en ecoute/passif
     {
         perror("listen");
-        throw std::runtime_error("Listend failed");
+        throw std::runtime_error("Listen failed");
     }
 
     pollfd server_poll;
