@@ -160,3 +160,33 @@ void Channel::broadcast(Client *sender, const std::string &message)
             _clients[i]; // a supprimer 
     }
 }
+
+
+void Channel::kick_com(std::string message) {
+
+}
+
+void Channel::invite_com(std::string message) {
+
+}
+
+void Channel::topic_com(std::string message) {
+
+}
+
+void Channel::mode_com(std::string message) {
+
+}
+
+
+void Channel::parse_commands(std::string message) {
+	void (Channel::*ptr[4])(std::string msg) = {&Channel::kick_com , &Channel::invite_com, &Channel::topic_com, &Channel::mode_com};
+	std::string commands[4] = {"KICK", "INVITE", "TOPIC", "MODE"};
+	std::string cmd = message.substr(0, message.find_first_of(" "));
+	for (int i = 0; i < 4; ++i) {
+		if (commands[i].compare(0, std::strlen(commands[i].c_str()), message) == 0) {
+			std::string arg = message.substr(message.find_first_of(" ") + 1, std::strlen(message.c_str()));
+			(this->*ptr[i])(arg);
+		}
+	}
+}

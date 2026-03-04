@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <set>
+#include <cstring>
 
 class Channel;
 
