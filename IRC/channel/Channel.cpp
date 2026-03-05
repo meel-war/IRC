@@ -116,6 +116,7 @@ void Channel::setTopic(const std::string& topic, Client *setter)
     if (hasMode('t')) {
         if (isInChannel(setter) && isOperator(setter))
             _topic = topic;
+		//mettre message d'erreur pour celui qui a fait la commande s'il n'est pas operateur donc tu codes ca sur le champ stp
     }
     else if (isInChannel(setter))
         _topic = topic;

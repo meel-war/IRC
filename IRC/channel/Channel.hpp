@@ -46,8 +46,8 @@ class Channel {
         void broadcast(Client* sender, const std::string& message);
 		void kick_com(std::string message);
 		void invite_com(std::string message);
-		void topic_com(std::string message);
+		void topic_com(std::string message, Client* sender);
 		void mode_com(std::string message);
-		void parse_commands(std::string message);
+		void parse_commands(std::string message, Client* sender);
 
 };
