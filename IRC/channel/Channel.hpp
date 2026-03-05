@@ -31,7 +31,7 @@ class Channel {
         bool hasMode(char mode) const;
         void removeMode(char mode);
         void setKey(const std::string& key);
-        void removeKey();
+        void removeKey(const std::string &key);
         bool checkKey(const std::string& input) const;
         void setClientLimit(int limit);
         void removeClientLimit();
@@ -44,10 +44,10 @@ class Channel {
         const std::string& getTopic() const;
         Client* findClientByNickname(const std::string& nickname) const;
         void broadcast(Client* sender, const std::string& message);
-		void kick_com(std::string message);
-		void invite_com(std::string message);
+		void kick_com(std::string message, Client* sender);
+		void invite_com(std::string message, Client* sender);
 		void topic_com(std::string message, Client* sender);
-		void mode_com(std::string message);
+		void mode_com(std::string message, Client* sender);
 		void parse_commands(std::string message, Client* sender);
 
 };
