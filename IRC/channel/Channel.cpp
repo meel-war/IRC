@@ -115,13 +115,15 @@ bool Channel::isInvited(Client* client)
 
 void Channel::setTopic(const std::string& topic, Client *setter)
 {
-    if (hasMode('t')) {
-        if (isInChannel(setter) && isOperator(setter))
-            _topic = topic;
-		//mettre message d'erreur pour celui qui a fait la commande s'il n'est pas operateur donc tu codes ca sur le champ stp
+    if (!isInChannel(setter)) {
+        std::cout << "You must be in the channel to set the topic." << std::endl;
+        return;
     }
-    else if (isInChannel(setter))
-        _topic = topic;
+    if (hasMode('t') && !isOperator(setter)) {
+        std::cout << "Only channel operators can set the topic." << std::endl;
+        return;
+    }
+    _topic = topic;
 }
 
 std::string Channel::getModes() const
