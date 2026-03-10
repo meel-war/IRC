@@ -2,6 +2,7 @@
 
 Server::Server(const std::string &port, const std::string &password)
 {
+    (void)password;
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(_server_fd < 0)
     {
@@ -52,7 +53,12 @@ void Server::pollClients()
             }
             else
             {
-                returnClient(_fds[i].fd); // client existant, msg
+                if(!returnClient(_fds[i].fd)) // client existant, msg
+                {
+                    close(_fds[i].fd);
+                    _fds.erase(_fds.begin() + i);
+                    i--;
+                }
             }
         }
     }
@@ -64,7 +70,7 @@ void Server::acceptClient()
     socklen_t addr_len = sizeof(client_addr);
     int client_fd = accept(_server_fd, (struct sockaddr*)&client_addr, &addr_len);
     if(client_fd < 0)
-        return;
+        throw std::runtime_error("Accept failed");
     Client new_client(client_fd);
     _clients.push_back(new_client);
 
@@ -77,9 +83,38 @@ void Server::acceptClient()
     std::cout << "New client connected: fd " << client_fd << std::endl;
 }
 
-void Server::returnClient(int client_fd)
+bool Server::returnClient(int client_fd)
 {
+    char buffer[1025];
+    int bytes = recv(client_fd, buffer, 1024, 0);
+    if(bytes <= 0)
+    {
+        std::cout << "Client disconnected: fd " << client_fd << std::endl;
+        return (false);
+    }
+    else
+    {
+        buffer[bytes] = '\0';
+        std::string raw(buffer);
+        std::cout << "RAW: [" << buffer << "]" << std::endl; // DEBUG
+        Client& sender = getClientByFd(client_fd);
+        parser(sender, raw);
+        return (true);
+    }
+}
 
+void Server::parser(Client& sender, std::string raw)
+{
+    (void)sender;
+    std::cout << raw << " : ";
+}
+
+Client& Server::getClientByFd(int fd)
+{
+    for(size_t i = 0; i < _clients.size(); i++)
+        if(_clients[i].getFd() == fd)
+            return(_clients[i]);
+    throw std::runtime_error("Client not found"); // a changer surement
 }
 
 Server::~Server() {}

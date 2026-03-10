@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <stdio.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <vector>
@@ -19,6 +21,7 @@ class Server {
         ~Server();
         void pollClients();
         void acceptClient();
-        void returnClient(int client_fd);
-
+        bool returnClient(int client_fd);
+        Client& getClientByFd(int fd);
+        void parser(Client& sender, std::string raw);
 };

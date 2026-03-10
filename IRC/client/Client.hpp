@@ -23,6 +23,7 @@ class Client {
         void joinChannel(Channel* channel);
         const std::string& getNickname() const;
         const std::string& getClientname() const;
+        const int& getFd() const;
         void setNickname(std::string& nickname);
         void setClientname(std::string& clientname);
         bool hasPass() const;

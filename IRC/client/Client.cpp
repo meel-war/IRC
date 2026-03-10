@@ -20,6 +20,11 @@ const std::string& Client::getNickname() const
     return (_nickname);
 }
 
+const int& Client::getFd() const
+{
+    return(_client_fd);
+}
+
 const std::string& Client::getClientname() const
 {
     return (_clientname);
