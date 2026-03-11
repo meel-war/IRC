@@ -161,7 +161,10 @@ void Channel::broadcast(Client *sender, const std::string &message)
 {
     for(int i = 0; i < _clients.size(); i++) {
         if (sender != _clients[i])
-            // _client[i]->sendMessage(message);
-            _clients[i]; // a supprimer 
+            sendRaw(_clients[i]->getFd(), message);
     }
+}
+
+void Channel::updateMode(char c) {
+    hasMode(c) ? removeMode(c) : addMode(c);
 }

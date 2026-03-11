@@ -30,6 +30,9 @@ class Server {
         /* COMMANDES */
         void init_commands();
         void parse_commands(std::string message, Client& sender);
+        void quit_com(std::vector<std::string> args, Client& sender);
+        void part_com(std::vector<std::string> args, Client& sender);
+        void nick_com(std::vector<std::string> args, Client& sender);
 };
 
 std::vector<std::string> split(std::string s, std::string delimiter);

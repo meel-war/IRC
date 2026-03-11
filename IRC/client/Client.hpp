@@ -30,3 +30,5 @@ class Client {
         bool hasNick() const;
         bool hasClient() const;
 };
+
+//besoin d'un setHasClient/Nick/Pass @Murad
