@@ -27,6 +27,8 @@ void Server::nick_com(std::vector<std::string> args, Client* sender) {
         return;
 	}
 	if (args.empty()) {
+		if (sender->hasNick())
+			sendMsg(sender->getFd(), sender->getNickname());
 		sendMsg(sender->getFd(), ":server 461 * :No nickname given");
 		return ;
 	}
@@ -41,6 +43,8 @@ void Server::nick_com(std::vector<std::string> args, Client* sender) {
 	//sender->setHasNick(true);
 }
 
+
+//PART -> Peu avoir plusieurs channel en argument, si c'est le cas faire split par ',' puis quitter 1 par 1
 void Server::part_com(std::vector<std::string> args, Client* sender) {
 	if (!sender->hasClient()) {
 		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
@@ -54,9 +58,9 @@ void Server::part_com(std::vector<std::string> args, Client* sender) {
 		sendMsg(sender->getFd(), ":server 403 " + sender->getNickname() + " " + args[0] + " :No such channel");
 		return ;
 	}
-	Channel& currchan = _channels[&sender];
+	Channel* currchan = getChannelByName(args[0]);
 	if (!currchan.isInChannel(sender)) { 
-		sendMsg(sender->getFd(), ":server 442 " + sender->getNickname() + " " + args[0] + " :You4re not on that channel");
+		sendMsg(sender->getFd(), ":server 442 " + sender->getNickname() + " " + args[0] + " :You're not on that channel");
 		return ;
 	}
 	std::string part = sender->getNickname() + " PART " + args[0] + " :" + reason;
@@ -79,29 +83,33 @@ void Server::quit_com(std::vector<std::string> args, Client* sender) {
 	}
 }
 
-void Server::parse_commands(std::string message, Client* sender) {
+void parse_commands(std::string message) {
 	// /r /n a la fin du msg = msg complet, sinon garder en memoire et lire la suite puir concatener
-    std::vector<std::string> msg = split(message, " ");
+	size_t last = message.find_last_not_of("\r\n");
+	if (last != std::string::npos)
+    	message = message.substr(0, last + 1);
+	std::vector<std::string> msg = split(message, ' ');
+	//nettoyage du /r/n, a faire seulement apres avoir verifier que la chaine etait complete
     std::transform(msg[0].begin(), msg[0].end(), msg[0].begin(), ::toupper);
 	std::string cmd = msg[0];
 	msg.erase(msg.begin());
-    std::map<std::string, void(Server::*)(std::vector<std::string>, Client*)>::iterator it = _commands.find(cmd);
-    if (it != _commands.end())
-        (this->*(it->second))(msg, sender);
+	std::cout << "Commande : " << cmd << std::endl;
+	std::cout << "Reste : " << msg[0] << std::endl;
 }
-//si il n'y a pas d'argument a voir ce qu'est msg apres le erase, peut etre devoir changer la methode
 
-std::vector<std::string> split(std::string s, std::string delimiter) {
-    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+std::vector<std::string> split(std::string s, char c) {
+    size_t pos_start = 0, pos_end;
     std::string token;
     std::vector<std::string> res;
 
-    while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+    while ((pos_end = s.find(c, pos_start)) != std::string::npos) {
+
         token = s.substr(pos_start, pos_end - pos_start);
-        pos_start = pos_end + delim_len;
+        pos_start = s.find_first_not_of(' ', pos_end);
         res.push_back(token);
     }
-
     res.push_back(s.substr(pos_start));
+	if (res.size() == 1)
+		res.push_back("");
     return res;
 }

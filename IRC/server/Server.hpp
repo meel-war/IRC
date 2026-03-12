@@ -40,5 +40,5 @@ class Server {
         void nick_com(std::vector<std::string> args, Client* sender);
 };
 
-std::vector<std::string> split(std::string s, std::string delimiter);
+std::vector<std::string> split(std::string s, char c);
 void sendMsg(const int& fd, const std::string& msg);
