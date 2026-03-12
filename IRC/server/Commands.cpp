@@ -1,10 +1,8 @@
 #include "Server.hpp"
-#include <sstream>
-#include <algorithm>
 
-static void sendMsg(const int& fd, const std::string& msg) {
+void sendMsg(const int& fd, const std::string& msg) {
     std::string line = msg + "\r\n";
-    send(fd, line_cstr(), line.size(), 0);
+    send(fd, line.c_str(), line.size(), 0);
 }
 
 void Server::init_commands()
@@ -23,78 +21,73 @@ void Server::init_commands()
     _commands["MODE"]    = &Server::mode_com;
 }
 
-void Server::nick_com(std::vector<std::string> args, Client& sender) {
-    if (!sender.hasPass()) {
-        sendMsg(sender.getFd(), ":server 464 * :Password required");
+void Server::nick_com(std::vector<std::string> args, Client* sender) {
+    if (!sender->hasPass()) {
+        sendMsg(sender->getFd(), ":server 464 * :Password required");
         return;
 	}
 	if (args.empty()) {
-		sendMsg(sender.getFd(), ":server 461 * :No nickname given");
+		sendMsg(sender->getFd(), ":server 461 * :No nickname given");
 		return ;
 	}
 	std::string newNick = args[0];
-	for (size_t i = 0; i < _client.size(); ++i) {
-		if (_clients[i]getNickname() == newNick && _clients[i].getFd() != sender.getFd()) {
-			sendMsg(sender.getFd(), ":server433 * " + newNick + " :Nickname is already in use");
+	for (size_t i = 0; i < _clients.size(); ++i) {
+		if (_clients[i]->getNickname() == newNick && _clients[i]->getFd() != sender->getFd()) {
+			sendMsg(sender->getFd(), ":server433 * " + newNick + " :Nickname is already in use");
 			return ;
 		}
 	}
-	sender.setNickname(newNick);
-	//sender.setHasNick(true);
+	sender->setNickname(newNick);
+	//sender->setHasNick(true);
 }
 
-void Server::part_com(std::vector<std::string> args, Client& sender) {
-	if (!sender.hasClient()) {
-		sendMsg(sender.getFd(), ":server 451 * :You have not registered");
+void Server::part_com(std::vector<std::string> args, Client* sender) {
+	if (!sender->hasClient()) {
+		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
 		return;
-	}if (args[0].empty || args[1].empty()) {
-		sendMsg(sender.getFd(), ":server 461 " + sender.getNickname() + " PART :Not enough parameters");
+	}if (args[0].empty() || args[1].empty()) {
+		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " PART :Not enough parameters");
 	}
 	//enlever le # du nom du channel ?
-	std::string reason = (args.size() > 1 ) ? args[1] : sender.getNickname();
-	if (_channels.find(args[0]) == _channels.end()) {
-		sendMsg(sender.getFd(), ":server 403 " + sender.getNickname() + " " + args[0] + " :No such channel");
+	std::string reason = (args.size() > 1 ) ? args[1] : sender->getNickname();
+	if (std::find(_channels.begin(), _channels.end(), args[0]) != _channels.end()) {
+		sendMsg(sender->getFd(), ":server 403 " + sender->getNickname() + " " + args[0] + " :No such channel");
 		return ;
 	}
 	Channel& currchan = _channels[&sender];
 	if (!currchan.isInChannel(sender)) { 
-		sendMsg(sender.getFd(), ":server 442 " + sender.getNickname() + " " + args[0] + " :You4re not on that channel");
+		sendMsg(sender->getFd(), ":server 442 " + sender->getNickname() + " " + args[0] + " :You4re not on that channel");
 		return ;
 	}
-	std::string part = sender.getNickname() " PART " + args[0] " :" + reason;
-	sendMsg(sender.getFd(), part);
-	currchan.broadcast(part);
+	std::string part = sender->getNickname() + " PART " + args[0] + " :" + reason;
+	sendMsg(sender->getFd(), part);
+	currchan.broadcast(sender, part);
 	currchan.removeClient(sender);
-	//if (chan.getClients().empty())
-	//	_channels.erase(args[0]);
 }
 
-void Server::quit_com(std::vector<std::string> args, Client& sender) {
+void Server::quit_com(std::vector<std::string> args, Client* sender) {
 	std::string reason = args.empty() ? "Client quit" : args[0];
-	std::string quitMsg = sender.getNickname() + "QUIT :" + reason;
+	std::string quitMsg = sender->getNickname() + "QUIT :" + reason;
 
-	std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end();
-	for(; it != channels.end(); ++it) {
-		Channel& chan = it->second;
-		if (chan.isInChannel(sender)) {
-			chan.broadcast(sender, quitMsg);
-			chan.removeClient(sender);
-			// if (chan.getClients().empty())
-			// 	_channels.erase(chan);
+	std::vector<Channel*>::iterator it = _channels.begin();
+	for(; it != _channels.end(); ++it) {
+		Channel* chan = *it;
+		if (chan->isInChannel(sender)) {
+			chan->broadcast(sender, quitMsg);
+			chan->removeClient(sender);
 		}
 	}
 }
 
-void Server::parse_commands(std::string message, Client& sender) {
+void Server::parse_commands(std::string message, Client* sender) {
 	// /r /n a la fin du msg = msg complet, sinon garder en memoire et lire la suite puir concatener
     std::vector<std::string> msg = split(message, " ");
-    std::transform(msg[0].begin(), msg[0].end(), msg[0].begin(), std::toupper);
-	std::string cmd = message[0];
+    std::transform(msg[0].begin(), msg[0].end(), msg[0].begin(), ::toupper);
+	std::string cmd = msg[0];
 	msg.erase(msg.begin());
-    std::map<std::string, void(Server::*)(std::vector<std::string>, Client&)::iterator it;
-    it = _commands.find(cmd);
+    std::map<std::string, void(Server::*)(std::vector<std::string>, Client*)>::iterator it = _commands.find(cmd);
     if (it != _commands.end())
-        *it->second(msg, sender);
+        (this->*(it->second))(msg, sender);
 }
 //si il n'y a pas d'argument a voir ce qu'est msg apres le erase, peut etre devoir changer la methode
 

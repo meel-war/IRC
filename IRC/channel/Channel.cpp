@@ -1,5 +1,7 @@
 #include "Channel.hpp"
 
+void sendMsg(const int& fd, const std::string& msg);
+
 void Channel::removeClient(Client *client)
 {
     _clients.erase(std::remove(_clients.begin(), _clients.end(), client), _clients.end());
@@ -161,7 +163,7 @@ void Channel::broadcast(Client *sender, const std::string &message)
 {
     for(int i = 0; i < _clients.size(); i++) {
         if (sender != _clients[i])
-            sendRaw(_clients[i]->getFd(), message);
+            sendMsg(_clients[i]->getFd(), message);
     }
 }
 
