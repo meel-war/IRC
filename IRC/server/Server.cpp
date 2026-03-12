@@ -120,7 +120,7 @@ void Server::removeClient(int fd)
                 if(_channels[j]->getClients().empty())
                 {
                     delete _channels[j];
-                    _channels.erase(_channels.begin() + i);
+                    _channels.erase(_channels.begin() + j);
                     j--;
                 }
             }
