@@ -8,6 +8,8 @@
 #include <vector>
 #include <poll.h>
 #include "../client/Client.hpp"
+#include "../channel/Channel.hpp"
+#include <map>
 
 class Server {
 
@@ -16,6 +18,7 @@ class Server {
         std::string _password;
         std::vector<pollfd> _fds;
         std::vector<Client*> _clients;
+        std::vector<Channel*> _channels;
         std::map<std::string, void (Server::*)(std::string, Client&)> _commands;
 
     public:

@@ -2,7 +2,7 @@
 #include <sstream>
 #include <algorithm>
 
-static void sendRaw(const int& fd, const std::string& msg) {
+static void sendMsg(const int& fd, const std::string& msg) {
     std::string line = msg + "\r\n";
     send(fd, line_cstr(), line.size(), 0);
 }
@@ -25,17 +25,17 @@ void Server::init_commands()
 
 void Server::nick_com(std::vector<std::string> args, Client& sender) {
     if (!sender.hasPass()) {
-        sendRaw(sender.getFd(), ":server 464 * :Password required");
+        sendMsg(sender.getFd(), ":server 464 * :Password required");
         return;
 	}
 	if (args.empty()) {
-		sendRaw(sender.getFd(), ":server 461 * :No nickname given");
+		sendMsg(sender.getFd(), ":server 461 * :No nickname given");
 		return ;
 	}
 	std::string newNick = args[0];
 	for (size_t i = 0; i < _client.size(); ++i) {
 		if (_clients[i]getNickname() == newNick && _clients[i].getFd() != sender.getFd()) {
-			sendRaw(sender.getFd(), ":server433 * " + newNick + " :Nickname is already in use");
+			sendMsg(sender.getFd(), ":server433 * " + newNick + " :Nickname is already in use");
 			return ;
 		}
 	}
@@ -45,24 +45,24 @@ void Server::nick_com(std::vector<std::string> args, Client& sender) {
 
 void Server::part_com(std::vector<std::string> args, Client& sender) {
 	if (!sender.hasClient()) {
-		sendRaw(sender.getFd(), ":server 451 * :You have not registered");
+		sendMsg(sender.getFd(), ":server 451 * :You have not registered");
 		return;
 	}if (args[0].empty || args[1].empty()) {
-		sendRaw(sender.getFd(), ":server 461 " + sender.getNickname() + " PART :Not enough parameters");
+		sendMsg(sender.getFd(), ":server 461 " + sender.getNickname() + " PART :Not enough parameters");
 	}
 	//enlever le # du nom du channel ?
 	std::string reason = (args.size() > 1 ) ? args[1] : sender.getNickname();
 	if (_channels.find(args[0]) == _channels.end()) {
-		sendRaw(sender.getFd(), ":server 403 " + sender.getNickname() + " " + args[0] + " :No such channel");
+		sendMsg(sender.getFd(), ":server 403 " + sender.getNickname() + " " + args[0] + " :No such channel");
 		return ;
 	}
 	Channel& currchan = _channels[&sender];
 	if (!currchan.isInChannel(sender)) { 
-		sendRaw(sender.getFd(), ":server 442 " + sender.getNickname() + " " + args[0] + " :You4re not on that channel");
+		sendMsg(sender.getFd(), ":server 442 " + sender.getNickname() + " " + args[0] + " :You4re not on that channel");
 		return ;
 	}
 	std::string part = sender.getNickname() " PART " + args[0] " :" + reason;
-	sendRaw(sender.getFd(), part);
+	sendMsg(sender.getFd(), part);
 	currchan.broadcast(part);
 	currchan.removeClient(sender);
 	//if (chan.getClients().empty())
@@ -86,6 +86,7 @@ void Server::quit_com(std::vector<std::string> args, Client& sender) {
 }
 
 void Server::parse_commands(std::string message, Client& sender) {
+	// /r /n a la fin du msg = msg complet, sinon garder en memoire et lire la suite puir concatener
     std::vector<std::string> msg = split(message, " ");
     std::transform(msg[0].begin(), msg[0].end(), msg[0].begin(), std::toupper);
 	std::string cmd = message[0];

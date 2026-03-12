@@ -108,10 +108,22 @@ bool Server::returnClient(int client_fd)
 
 void Server::removeClient(int fd)
 {
-    for(int i = 0; i < _clients.size(); i++)
+    for(size_t i = 0; i < _clients.size(); i++)
     {
         if(_clients[i]->getFd() == fd)
         {
+            Client* client = _clients[i];
+            for(size_t j = 0; j < _channels.size(); j++)
+            {
+                _channels[j]->removeClient(client);
+                if(_channels[j]->getClients().empty())
+                {
+                    delete _channels[j];
+                    _channels.erase(_channels.begin() + i);
+                    j--;
+                }
+            }
+            delete client;
             _clients.erase(_clients.begin() + i);
             return;
         }
@@ -126,4 +138,13 @@ Client* Server::getClientByFd(int fd)
     throw std::runtime_error("Client not found"); // a changer surement
 }
 
-Server::~Server() {}
+Server::~Server() 
+{
+    for(size_t i = 0; i < _clients.size(); i++)
+        delete _clients[i];
+    
+    for(size_t i = 0; i < _channels.size(); i++)
+        delete _channels[i];
+    
+    close(_server_fd);
+}
