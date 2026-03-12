@@ -2,7 +2,7 @@
 
 Server::Server(const std::string &port, const std::string &password)
 {
-    (void)password;
+    _password = password;
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(_server_fd < 0)
     {
@@ -71,7 +71,7 @@ void Server::acceptClient()
     int client_fd = accept(_server_fd, (struct sockaddr*)&client_addr, &addr_len);
     if(client_fd < 0)
         throw std::runtime_error("Accept failed");
-    Client new_client(client_fd);
+    Client* new_client = new Client(client_fd);
     _clients.push_back(new_client);
 
     //ajout dans le tableau des fds_poll en msg entrant
@@ -85,34 +85,43 @@ void Server::acceptClient()
 
 bool Server::returnClient(int client_fd)
 {
-    char buffer[1025];
-    int bytes = recv(client_fd, buffer, 1024, 0);
+    char buffer[513];
+    int bytes = recv(client_fd, buffer, 512, 0); // Norme offi IRC, un msg IRC limite a 512 bytes max
     if(bytes <= 0)
     {
         std::cout << "Client disconnected: fd " << client_fd << std::endl;
+        removeClient(client_fd);
         return (false);
     }
     else
     {
         buffer[bytes] = '\0';
-        std::string raw(buffer);
+        std::string msg(buffer);
         std::cout << "RAW: [" << buffer << "]" << std::endl; // DEBUG
-        Client& sender = getClientByFd(client_fd);
-        parser(sender, raw);
+        Client* sender = getClientByFd(client_fd);
+        if(!sender)
+            return(false);
+        parse_commands(msg, *sender);
         return (true);
     }
 }
 
-void Server::parser(Client& sender, std::string raw)
+void Server::removeClient(int fd)
 {
-    (void)sender;
-    std::cout << raw << " : ";
+    for(int i = 0; i < _clients.size(); i++)
+    {
+        if(_clients[i]->getFd() == fd)
+        {
+            _clients.erase(_clients.begin() + i);
+            return;
+        }
+    }
 }
 
-Client& Server::getClientByFd(int fd)
+Client* Server::getClientByFd(int fd)
 {
     for(size_t i = 0; i < _clients.size(); i++)
-        if(_clients[i].getFd() == fd)
+        if(_clients[i]->getFd() == fd)
             return(_clients[i]);
     throw std::runtime_error("Client not found"); // a changer surement
 }

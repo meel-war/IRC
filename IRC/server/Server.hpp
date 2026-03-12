@@ -13,8 +13,9 @@ class Server {
 
     private:
         int _server_fd;
+        std::string _password;
         std::vector<pollfd> _fds;
-        std::vector<Client> _clients;
+        std::vector<Client*> _clients;
         std::map<std::string, void (Server::*)(std::string, Client&)> _commands;
 
     public:
@@ -23,8 +24,8 @@ class Server {
         void pollClients();
         void acceptClient();
         bool returnClient(int client_fd);
-        Client& getClientByFd(int fd);
-        void parser(Client& sender, std::string raw);
+        Client* getClientByFd(int fd);
+        void removeClient(int fd);
 
 
         /* COMMANDES */
