@@ -40,9 +40,12 @@ class Channel {
         bool isInvited(Client *client);
         void setTopic(const std::string& topic, Client* setter);
         std::string getModes() const;
+        std::string getName() const;
         const std::vector<Client*>& getClients() const;
         const std::string& getTopic() const;
         Client* findClientByNickname(const std::string& nickname) const;
         void broadcast(Client* sender, const std::string& message);
         void updateMode(char c);
 };
+
+//Mehdi : Besoin d'constructeur Channel avec tout les caracteristique d'un channel (comment c possible y a pas de constructeur sale noob)

@@ -30,6 +30,8 @@ class Server {
         bool returnClient(int client_fd);
         Client* getClientByFd(int fd);
         void removeClient(int fd);
+        Channel* getChannelByName(std::string &name);
+        Channel* createChannel(std::string &name);
 
 
         /* COMMANDES */

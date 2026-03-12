@@ -170,3 +170,8 @@ void Channel::broadcast(Client *sender, const std::string &message)
 void Channel::updateMode(char c) {
     hasMode(c) ? removeMode(c) : addMode(c);
 }
+
+std::string Channel::getName() const
+{
+    return(_name);
+}

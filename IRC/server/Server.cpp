@@ -27,6 +27,7 @@ Server::Server(const std::string &port, const std::string &password)
         throw std::runtime_error("Listen failed");
     }
 
+    init_commands();
     pollfd server_poll;
     server_poll.fd = _server_fd;
     server_poll.events = POLLIN;
@@ -101,7 +102,7 @@ bool Server::returnClient(int client_fd)
         Client* sender = getClientByFd(client_fd);
         if(!sender)
             return(false);
-        parse_commands(msg, *sender);
+        parse_commands(msg, sender);
         return (true);
     }
 }
@@ -130,12 +131,32 @@ void Server::removeClient(int fd)
     }
 }
 
+Channel* Server::getChannelByName(std::string &name)
+{
+    for(size_t i = 0; i < _channels.size(); i++)
+    {
+        if(_channels[i]->getName() == name)
+            return(_channels[i]);
+    }
+    return(NULL);    
+}
+
+Channel* Server::createChannel(std::string &name)
+{
+    Channel* ch = getChannelByName(name);
+    if(ch)
+        return(ch);
+    Channel* new_channel = new Channel(name);
+    _channels.push_back(new_channel);
+    return(new_channel);
+}
+
 Client* Server::getClientByFd(int fd)
 {
     for(size_t i = 0; i < _clients.size(); i++)
         if(_clients[i]->getFd() == fd)
             return(_clients[i]);
-    throw std::runtime_error("Client not found"); // a changer surement
+    throw std::runtime_error("Client not found");
 }
 
 Server::~Server() 
