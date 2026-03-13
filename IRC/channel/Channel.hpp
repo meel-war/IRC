@@ -47,5 +47,3 @@ class Channel {
         void broadcast(Client* sender, const std::string& message);
         void updateMode(char c);
 };
-
-//Mehdi : Besoin d'constructeur Channel avec tout les caracteristique d'un channel (comment c possible y a pas de constructeur sale noob)

@@ -33,5 +33,3 @@ class Client {
         void setHasNick(bool nick);
         void setHasClient(bool client);
 };
-
-//besoin d'un setHasClient/Nick/Pass @Murad
