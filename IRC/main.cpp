@@ -9,9 +9,8 @@ int main(int ac, char **av)
         return (1);
     }
     try
-    {
+    {   
         Server server(av[1], av[2]);
-
         while(true)
         {
             server.pollClients();

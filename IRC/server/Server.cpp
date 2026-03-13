@@ -2,6 +2,11 @@
 
 Server::Server(const std::string &port, const std::string &password)
 {
+    char* endptr;
+    long int port_num = strtol(port.c_str(), &endptr, 10);
+    if(*endptr != '\0' || port_num < 1024 || port_num > 65535)
+        throw std::runtime_error("Port must be a number between 1024 and 65535"); // Surement a rendre plus clean (temp)
+    
     _password = password;
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(_server_fd < 0)
@@ -27,6 +32,7 @@ Server::Server(const std::string &port, const std::string &password)
         throw std::runtime_error("Listen failed");
     }
 
+    init_commands();
     pollfd server_poll;
     server_poll.fd = _server_fd;
     server_poll.events = POLLIN;
@@ -96,12 +102,22 @@ bool Server::returnClient(int client_fd)
     else
     {
         buffer[bytes] = '\0';
-        std::string msg(buffer);
-        std::cout << "RAW: [" << buffer << "]" << std::endl; // DEBUG
         Client* sender = getClientByFd(client_fd);
         if(!sender)
             return(false);
-        parse_commands(msg, *sender);
+        sender->appendBuffer(buffer); // append la suite au buffer si le precedent msg ne se termine pas par \r\n
+        std::string &clientBuffer = sender->getBuffer();
+        size_t pos;
+
+        while((pos = clientBuffer.find("\r\n")) != std::string::npos) //Trouve les \r\n dans le buffer
+        {
+            std::string command = clientBuffer.substr(0, pos);
+            clientBuffer.erase(0, pos + 2);
+            if(command.empty())
+                continue;
+            std::cout << "CMD: [" << command << "]" << std::endl;
+            parse_commands(command, sender);
+        }
         return (true);
     }
 }
@@ -119,7 +135,7 @@ void Server::removeClient(int fd)
                 if(_channels[j]->getClients().empty())
                 {
                     delete _channels[j];
-                    _channels.erase(_channels.begin() + i);
+                    _channels.erase(_channels.begin() + j);
                     j--;
                 }
             }
@@ -130,13 +146,35 @@ void Server::removeClient(int fd)
     }
 }
 
+Channel* Server::getChannelByName(std::string &name)
+{
+    for(size_t i = 0; i < _channels.size(); i++)
+    {
+        if(_channels[i]->getName() == name)
+            return(_channels[i]);
+    }
+    return(NULL);    
+}
+
+Channel* Server::createChannel(std::string &name)
+{
+    Channel* ch = getChannelByName(name);
+    if(ch)
+        return(ch);
+    Channel* new_channel = new Channel(name);
+    _channels.push_back(new_channel);
+    return(new_channel);
+}
+
 Client* Server::getClientByFd(int fd)
 {
     for(size_t i = 0; i < _clients.size(); i++)
         if(_clients[i]->getFd() == fd)
             return(_clients[i]);
-    throw std::runtime_error("Client not found"); // a changer surement
+    throw std::runtime_error("Client not found");
 }
+
+
 
 Server::~Server() 
 {
