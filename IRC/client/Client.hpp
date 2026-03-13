@@ -17,6 +17,7 @@ class Client {
         bool _has_client;
         std::set<Channel*> _joinedChannels;
         int _client_fd;
+        std::string _buffer;
 
     public:
         Client(int fd);
@@ -32,4 +33,6 @@ class Client {
         void setHasPass(bool pass);
         void setHasNick(bool nick);
         void setHasClient(bool client);
+        void appendBuffer(const std::string &new_buffer);
+        std::string& getBuffer();
 };

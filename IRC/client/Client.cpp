@@ -62,3 +62,13 @@ void Client::setHasClient(bool client)
 {
     _has_client = client;
 }
+
+void Client::appendBuffer(const std::string &new_buffer)
+{
+    _buffer += new_buffer;
+}
+
+std::string& Client::getBuffer()
+{
+    return(_buffer);
+}

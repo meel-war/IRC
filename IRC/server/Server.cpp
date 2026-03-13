@@ -2,7 +2,6 @@
 
 Server::Server(const std::string &port, const std::string &password)
 {
-
     char* endptr;
     long int port_num = strtol(port.c_str(), &endptr, 10);
     if(*endptr != '\0' || port_num < 1024 || port_num > 65535)
@@ -103,12 +102,22 @@ bool Server::returnClient(int client_fd)
     else
     {
         buffer[bytes] = '\0';
-        std::string msg(buffer);
-        std::cout << "RAW: [" << buffer << "]" << std::endl; // DEBUG
         Client* sender = getClientByFd(client_fd);
         if(!sender)
             return(false);
-        parse_commands(msg, sender);
+        sender->appendBuffer(buffer); // append la suite au buffer si le precedent msg ne se termine pas par \r\n
+        std::string &clientBuffer = sender->getBuffer();
+        size_t pos;
+
+        while((pos = clientBuffer.find("\r\n")) != std::string::npos) //Trouve les \r\n dans le buffer
+        {
+            std::string command = clientBuffer.substr(0, pos);
+            clientBuffer.erase(0, pos + 2);
+            if(command.empty())
+                continue;
+            std::cout << "CMD: [" << command << "]" << std::endl;
+            parse_commands(command, sender);
+        }
         return (true);
     }
 }
@@ -164,6 +173,8 @@ Client* Server::getClientByFd(int fd)
             return(_clients[i]);
     throw std::runtime_error("Client not found");
 }
+
+
 
 Server::~Server() 
 {
