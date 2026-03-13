@@ -156,6 +156,16 @@ Channel* Server::getChannelByName(std::string &name)
     return(NULL);    
 }
 
+Client* Server::getClientByName(std::string &name)
+{
+    for(size_t i = 0; i < _clients.size(); i++)
+    {
+        if(_clients[i]->getNickname() == name)
+            return(_clients[i]);
+    }
+    return(NULL);    
+}
+
 Channel* Server::createChannel(std::string &name)
 {
     Channel* ch = getChannelByName(name);

@@ -21,6 +21,79 @@ void Server::init_commands()
     _commands["MODE"]    = &Server::mode_com;
 }
 
+
+
+void Server::pass_com(std::vector<std::string> args, Client* sender) {
+	if (sender->hasNick() || sender->hasClient()) {
+		sendMsg(sender->getFd(), ":server 462 " + sender->getNickname() + " :You may not reregister");
+		return ;
+	}
+	if (args[0].empty()) {
+		sendMsg(sender->getFd(), ":server 461 * PASS :Not enough parameters");
+		return ;
+	}
+	if (args[0] != _password) {
+		sendMsg(sender->getFd(), ":server 464 * :Password incorrect");
+		return;
+	}
+	sender->setHasPass(true);
+}
+
+void Server::user_com(std::vector<std::string> args, Client* sender) {
+	if (!sender->hasPass()) {
+        sendMsg(sender->getFd(), ":server 464 * :Password required");
+        return;
+	}
+    if (sender->hasClient()) {
+        sendMsg(sender->getFd(), ":server 462 " + sender->getNickname() + " :You may not reregister");
+        return;
+    }
+	if (args.size() < 4) {
+		sendMsg(sender->getFd(), ":server 461 * USER :Not enough parameters");
+        return;
+	}
+	std::string username = args[0];
+	std::string realname = args[3];
+	sender->setNickname(username);
+	sender->setClientname(realname);
+	sender->setHasClient(true);
+}
+
+void Server::privmsg_com(std::vector<std::string> args, Client* sender) {
+	if (!sender->hasClient()) {
+        sendMsg(sender->getFd(), ":server 451 * :You have not registered");
+        return;
+    }
+	if (args.size() < 2 || args[0].empty() || args[1].empty()) {
+		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " PRIVMSG :Not enough parameters");
+        return;
+	}
+	std::string target = args[0];
+	std::string msg = args[1];
+	if (target[0] == '#') {
+		Channel* currchan = getChannelByName(target);
+		if (!currchan)       {
+            sendMsg(sender->getFd(), ":server 403 " + sender->getNickname() + " " + target + " :No such channel");
+            return;
+        }
+		if (!currchan->isInChannel(sender)) {
+            sendMsg(sender->getFd(), ":server 404 " + sender->getNickname() + " " + target + " :Cannot send to channel");
+            return;
+        }
+		std::string finalmsg = sender->getNickname() + " PRIVMSG " + target + " :" + msg;
+		currchan->broadcast(sender, msg);
+	}
+	else { 
+		Client* dest = getClientByName(target);
+		if (!dest) {
+			sendMsg(sender->getFd(), ":server 401 " + sender->getNickname() + " " + target + " :No such nick");
+			return ;
+		}
+		std::string finalmsg = sender->getNickname() + " PRIVMSG " + target + " :" + msg;
+		sendMsg(dest->getFd(), finalmsg);
+	}
+}
+
 void Server::nick_com(std::vector<std::string> args, Client* sender) {
     if (!sender->hasPass()) {
         sendMsg(sender->getFd(), ":server 464 * :Password required");
@@ -29,6 +102,7 @@ void Server::nick_com(std::vector<std::string> args, Client* sender) {
 	if (args.empty()) {
 		if (sender->hasNick())
 			sendMsg(sender->getFd(), sender->getNickname());
+		//ligne du dessus pas totalement finit
 		sendMsg(sender->getFd(), ":server 461 * :No nickname given");
 		return ;
 	}
@@ -40,7 +114,7 @@ void Server::nick_com(std::vector<std::string> args, Client* sender) {
 		}
 	}
 	sender->setNickname(newNick);
-	//sender->setHasNick(true);
+	sender->setHasNick(true);
 }
 
 
@@ -49,7 +123,7 @@ void Server::part_com(std::vector<std::string> args, Client* sender) {
 	if (!sender->hasClient()) {
 		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
 		return;
-	}if (args[0].empty() || args[1].empty()) {
+	}if (args[0].empty()) {
 		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " PART :Not enough parameters");
 	}
 	//enlever le # du nom du channel ?
@@ -59,14 +133,14 @@ void Server::part_com(std::vector<std::string> args, Client* sender) {
 		return ;
 	}
 	Channel* currchan = getChannelByName(args[0]);
-	if (!currchan.isInChannel(sender)) { 
+	if (!currchan->isInChannel(sender)) { 
 		sendMsg(sender->getFd(), ":server 442 " + sender->getNickname() + " " + args[0] + " :You're not on that channel");
 		return ;
 	}
 	std::string part = sender->getNickname() + " PART " + args[0] + " :" + reason;
 	sendMsg(sender->getFd(), part);
-	currchan.broadcast(sender, part);
-	currchan.removeClient(sender);
+	currchan->broadcast(sender, part);
+	currchan->removeClient(sender);
 }
 
 void Server::quit_com(std::vector<std::string> args, Client* sender) {

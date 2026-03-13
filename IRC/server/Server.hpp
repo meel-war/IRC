@@ -32,6 +32,7 @@ class Server {
         void removeClient(int fd);
         Channel* getChannelByName(std::string &name);
         Channel* createChannel(std::string &name);
+		Client* getClientByName(std::string &name);
 
 
         /* COMMANDES */
@@ -40,6 +41,9 @@ class Server {
         void quit_com(std::vector<std::string> args, Client* sender);
         void part_com(std::vector<std::string> args, Client* sender);
         void nick_com(std::vector<std::string> args, Client* sender);
+		void privmsg_com(std::vector<std::string> args, Client* sender);
+		void user_com(std::vector<std::string> args, Client* sender);
+		void pass_com(std::vector<std::string> args, Client* sender);
 };
 
 std::vector<std::string> split(std::string s, char c);
