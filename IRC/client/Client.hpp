@@ -29,6 +29,9 @@ class Client {
         bool hasPass() const;
         bool hasNick() const;
         bool hasClient() const;
+        void setHasPass(bool pass);
+        void setHasNick(bool nick);
+        void setHasClient(bool client);
 };
 
 //besoin d'un setHasClient/Nick/Pass @Murad

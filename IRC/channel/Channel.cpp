@@ -2,6 +2,9 @@
 
 void sendMsg(const int& fd, const std::string& msg);
 
+Channel::Channel(std::string name) 
+    : _name(name), _topic(""), _key(""), _clientLimit(0) {}
+
 void Channel::removeClient(Client *client)
 {
     _clients.erase(std::remove(_clients.begin(), _clients.end(), client), _clients.end());

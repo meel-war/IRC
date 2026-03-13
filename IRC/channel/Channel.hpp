@@ -15,12 +15,12 @@ class Channel {
         std::string _key;
         int _clientLimit;
         std::vector<Client *> _clients;
-        // set c'est comme vector mais ne stocke pas les doublons et ignore l’element si présent
         std::set<Client*> _operators;
         std::set<char> _modes;
         std::set<Client *> _invited;
 
     public:
+        Channel(std::string name);
         void removeClient(Client* client);
         void addClient(Client* client);
         bool isInChannel(Client* client) const;
