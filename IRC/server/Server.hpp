@@ -44,6 +44,10 @@ class Server {
 		void privmsg_com(std::vector<std::string> args, Client* sender);
 		void user_com(std::vector<std::string> args, Client* sender);
 		void pass_com(std::vector<std::string> args, Client* sender);
+        void invite_com(std::vector<std::string> args, Client* sender);
+        void kick_com(std::vector<std::string> args, Client* sender);
+        void topic_com(std::vector<std::string> args, Client* sender);
+        void mode_com(std::vector<std::string> args, Client* sender);
 };
 
 std::vector<std::string> split(std::string s, char c);

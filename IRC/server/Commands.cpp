@@ -21,7 +21,208 @@ void Server::init_commands()
     _commands["MODE"]    = &Server::mode_com;
 }
 
+void Server::mode_com(std::vector<std::string> args, Client* sender) {
+	if (!sender->hasClient()) {
+		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
+		return;
+	}
+	if (args.empty()) {
+		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " MODE :Not enough parameters");
+		return;
+	}
+	std::string channame = args[0];
+	Channel* currchan = findChannelbyName(channame);
+	if (!chan) {
+		sendMsg(sender->getFd(), ":server 403 " + sender->getNickname() + " " + channame + " :No such channel");
+		return;
+	}
+	if (args.size() == 1) {
+		sendMSg(sender->getFd(), ":server 324 " + sender.getNickname() + " " + channame + " " + currchan.getModes());M:Not
+		return;
+	}
+	if (!currchan->isOperator(sender)) { 
+		sendMsg(sender->getFd(), ":server 482 " + sender->getNickname() + " " + channame + " :You're not channel operator");
+		return;
+	}
+	std::string modes = args[1];
+	bool add = true;
+	size_t argidx = 2;
+	for (size_t i = 0; i < modes.size(); ++i) {
+		char c = modes[i];
+		if (c == '+')
+			add = true;
+		if (c == '-')
+			add = false;
+		//verifier si mode deja actif ou non ?
+		//le faire plutot dans addmode/removemode ?
+		switch (c) {
+			case 'i':
+				updateMode(c);
+				break;
+			case 't':
+				updateMode(c);
+			case 'k':
+				if (adding) {
+					if (argidx >= args.size()) {
+						sendMsg(sender->getFd(), ":server 461 " + sender->getNickname(), + " MODE :Not enough parameters");
+						break;
+					}
+					currchan.addMode('k');
+					currchan.setKey(args[argidx]);
+					argidx++;
+				}
+				else {
+					currchan.removeMode('k');
+					//currchan.removeKey(currchan.getKey());
+				}
+				break;
+			case 'o':
+				if (argidx >= args.size()) {
+					sendMsg(sender->getFd(), ":server 461 " + sender->getNickname(), + " MODE :Not enough parameters");
+					break;
+				}
+				std::string targetname = args[argidx];
+				argidx++;
+				Client* target = currchan.findClientByNickname(targetname);
+				if (!target) {
+					sendMSg(sender->getFd(), ":server 441 " + sender->getNickname() + " " + targetname + " " + channame + " :They aren't on that channel");
+					return ;
+				}
+				adding ? currchan.addOperator(target) : currchan.removeOperator(target);
+				break;
+			case 'l':
+				if (adding) {
+					if (argidx >= args.size()) {
+						sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " MODE :Not enough parameters");
+						break;
+					}
+					currchan.addmode(c);
+					currchan.setClientLimit(std::atoi(args[argidx].c_str()));
+					argidx++;
+				}
+				else {
+					currchan.removeMode('l');
+					currchan.removeClientLimit();
+				}
+				break;
+			default:
+				sendMsg(sender->getFd(), ":server 472 " + sender->getNickname() + " " + c + " :is unknown mode char");
+				break;
+		}
+	}
+	std::string modemsg = sender->getNickname(), + " MODE " + channame + " " + modes;
+	chan.broadcast(modemsg);
+	sendMsg(sender->getFd(), modemsg);
+}
+void Server::topic_com(std::vector<std::string> args, Client* sender) {
+	if (!sender->hasClient()) {
+		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
+		return;
+	}
+	if (args.empty()) {
+		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " TOPIC :Not enough parameters");
+		return;
+	}
+	std::string channame = args[0];
+	Channel* currchan = findChannelbyName(channame);
+	if (!currchan) {
+		sendMsg(sender->getFd(), "server 403 " + sender.getNickname() +  " " + channame + " :No such channel");
+		return;
+	}
+	if (!currchan.isInChannel(sender)) {
+		sendMsg(sender->getFd(), ":server 442 " + sender->getNickname() + " " + channame + ":You're not on that channel");
+		return;
+	}
+	if (args.size() == 1) {
+		if (currchan->getTopic().empty())
+			sendMsg(sender->getFd(), ":server 331 " + sender->getNickname() + " " + channame + " :No topic is set");
+		else
+			sendMSg(sender->getFd(), ":server 332 " + sender->getNickname() + " " + channame + " :" + chan.getTopic());
+		return;
+	}
+	if (currchan->hasMode('t') && !currchan.isOperator(sender)) {
+		sendMsg(sender->getFd(), ":server 482 " + sender->getNickname() + " " + channame() + " :You're not channel operator");
+		return;
+	}
+	currchan.setTopic(args[1], sender);
+	std::string topicmsg = sender->getNickname() + " TOPIC " + channame + " :" + args[1];
+	chan.broadcast(topicmsg);
+	sendMsg(sender->getFd(), topicmsg);
+}
 
+void Server::kick_com(std::vector<std::string> args, Client* sender) {
+	if (!sender->hasClient()) {
+		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
+		return;
+	}
+	if (args.size() < 2) {
+		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " KICK :Not enough parameters");
+		return ;
+	}
+	std::string channame = args[0];
+	std::string targetname = args[1];
+	std::string reason = (args.size() >= 3) ? args[2] : sender->getNickname();
+	Channel* currchan = findChannelbyName(channame);
+	if (!currchan) {
+		sendMsg(sender->getFd(), ":server 403 " + sender->getNickname() + " " + channame + " :No such channel");
+		return ;
+	}
+	if (!chan.isInChannel(sender)) {
+		sendMsg(sender->getFd(), ":server 442 " + sender->getNickname() + " " + args[0] + " :You're not on that channel");
+		return ;
+	}
+	if (!chan.isOperator()) {
+		sendMsg(sender->getFd(), ":server 482 " + sender->getNickname() + " " + channame + " :You're not channel operator");
+		return;
+	}
+	Client* target = currchan.findClientByNickname(targetname);
+	if (!target) {
+		sendMSg(sender->getFd(), ":server 441 " + sender->getNickname() + " " + targetname + " " + channame + " :They aren't on that channel");
+		return ;
+	}
+	std::string kickmsg = sender->getNickname() + " KICK " + channame + " " + targetname + " :" + reason;
+	sendRaw(target->getFd(), kickmsg);
+	currchan.removeClient(target);
+	currchan.broadcast(kickmsg);
+}
+
+void Server::invite_com(std::vector<std::string> args, Client* sender) {
+	if (!sender->hasClient()) {
+		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
+		return;
+	}
+	if (args.size() < 2) {
+		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " INVITE :Not enough parameters");
+		return ;
+	}
+	std::string targetname = args[0];
+	std::string channame = args[1];
+	Channel* currchan = getChannelByName(channame);
+	if (!currchan) {
+		sendMsg(sender->getFd(), ":server 403 " + sender->getNickname() + " " + channame + " :No such channel");
+		return ;
+	}
+	if (!currchan->isInChannel(sender)) {
+		sendMsg(sender->getFd(), ":server 442 " + sender->getNickname() + " " + args[0] + " :You're not on that channel");
+		return ;
+	}
+	if (currchan->hasmode('i') && !currchan->isOperator(sender)) {
+		sendMsg(sender->getFd(), ":server 482 " + sender->getNickname() + " " + channame + " :You're not channel operator");
+		return;
+	}
+	Client* target = currchan->findClientByNickname(targetname);
+	if (!target) {
+		sendMsg(sender->getFd(), ":server 401 " + sender->getNickname() + " " + targetname + " :No such nick");
+		return;
+	}
+	if (currchan.isInChannel(target)) {
+		sendMsg(sender->getFd(), ":server 443 " + sender->getNickname() + " " + targetname + " " + channame + " :is already on channel");
+		return ;
+	}
+	currchan.inviteClient(target);
+	sendMsg(sender->getFd(), ":server 341 " + sender->getNickname() + " " + targetname + " " + channame);
+	sendMsg(target->getFd(), sender->getNickname() + " INVITE " + targetname " :" + channame);
+}
 
 void Server::pass_com(std::vector<std::string> args, Client* sender) {
 	if (sender->hasNick() || sender->hasClient()) {
@@ -157,7 +358,7 @@ void Server::quit_com(std::vector<std::string> args, Client* sender) {
 	}
 }
 
-void parse_commands(std::string message) {
+void parse_commands(std::string message, Client* sender) {
 	// /r /n a la fin du msg = msg complet, sinon garder en memoire et lire la suite puir concatener
 	size_t last = message.find_last_not_of("\r\n");
 	if (last != std::string::npos)
@@ -167,8 +368,10 @@ void parse_commands(std::string message) {
     std::transform(msg[0].begin(), msg[0].end(), msg[0].begin(), ::toupper);
 	std::string cmd = msg[0];
 	msg.erase(msg.begin());
-	std::cout << "Commande : " << cmd << std::endl;
-	std::cout << "Reste : " << msg[0] << std::endl;
+	std::map<std::string, void (Server::*)(stdLLvector<std::string>, Client*)>::iterator it;
+	it =  = _commands.find(cmd);
+	if (it != _commands.end())
+		(this->*(it->second))(msg, sender);
 }
 
 std::vector<std::string> split(std::string s, char c) {
