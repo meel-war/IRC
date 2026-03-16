@@ -327,21 +327,24 @@ void Server::part_com(std::vector<std::string> args, Client* sender) {
 	}if (args[0].empty()) {
 		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " PART :Not enough parameters");
 	}
-	//enlever le # du nom du channel ?
+	std::vector<std::string> channels = split(args[0], ',');
 	std::string reason = (args.size() > 1 ) ? args[1] : sender->getNickname();
-	if (std::find(_channels.begin(), _channels.end(), args[0]) != _channels.end()) {
-		sendMsg(sender->getFd(), ":server 403 " + sender->getNickname() + " " + args[0] + " :No such channel");
-		return ;
+	for (size_t i = 0; i < channels.size(); ++i) {
+		std::string channame = channels[i];
+		Channel* currchan = getChannelByName(args[0]);
+		if (!currchan) {
+			sendMsg(sender->getFd(), ":server 403 " + sender->getNickname() + " " + args[0] + " :No such channel");
+			return ;
+		}
+		if (!currchan->isInChannel(sender)) { 
+			sendMsg(sender->getFd(), ":server 442 " + sender->getNickname() + " " + args[0] + " :You're not on that channel");
+			return ;
+		}
+		std::string partmsg = sender->getNickname() + " PART " + channame + " :" + reason;
+		sendMsg(sender->getFd(), partmsg);
+		currchan->broadcast(sender, partmsg);
+		currchan->removeClient(sender);
 	}
-	Channel* currchan = getChannelByName(args[0]);
-	if (!currchan->isInChannel(sender)) { 
-		sendMsg(sender->getFd(), ":server 442 " + sender->getNickname() + " " + args[0] + " :You're not on that channel");
-		return ;
-	}
-	std::string part = sender->getNickname() + " PART " + args[0] + " :" + reason;
-	sendMsg(sender->getFd(), part);
-	currchan->broadcast(sender, part);
-	currchan->removeClient(sender);
 }
 
 void Server::quit_com(std::vector<std::string> args, Client* sender) {
