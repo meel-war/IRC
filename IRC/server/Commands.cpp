@@ -21,6 +21,67 @@ void Server::init_commands()
     _commands["MODE"]    = &Server::mode_com;
 }
 
+//rajouter des consts a toute mes variables que j'utilise uniquement dans mes commandes (notamment toute mes std::string> target/channame etc)
+
+void Server::join_com(std::vector<std::string> args, Client* sender) {
+	if (!sender->hasClient()) {
+		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
+		return;
+	}
+	if (args.empty()) {
+		sendRaw(sender->getFd(), ":server 461 " + sender->getNickname(), + " JOIN :Not enouh parameters");
+		return;
+	}
+	std::vector<std::string> chans = split(args[0], ',');
+	std::vector<std::string> keys;
+	if (args.size() >= 2)
+		keys = split(args[1], ',');
+	for (size_t i = 0; i < chans.size(); ++i) {
+		std::string channame = chans[i];
+		std::string key = (i  < keys.size()) ? keys[i] : "";
+		if (channame.empty() || channame[0] != '#') {
+			sendMsg(sender->getFd(), ":server 403 " + sender->getNickname() + " " + channame + " :No such channel");
+			continue;
+		}
+		Channel* chan = createChannel(channame);
+		if (chan.isInChannel(sender))
+			continue;
+		if (chan.hasMode('k') && !chan.checkKey(key)) {
+			sendMsg(sender->getFd(), ":server 475 " + sender->getNickname() + " " + channame + " :Cannot join channel (+k)");
+			continue;
+		}
+		if (chan.hasMode('i') && !chan.isInvited(sender)) {
+			sendMsg(sender->getFd(), ":server 473 " + sender->getNickname() + " " + channame + " :Cannot join channel (+i)");
+			continue;
+		}
+		if (chan.hasMode('l') && chan.isFull()) {
+			sendMsg(sender->getFd(), ":server 471 " + sender->getNickname() + " " + channame + " :Cannot join channel (+l)");
+			continue;
+		}
+		chan.addClient(sender);
+		if (chan.getClients().size() == 1)
+			chan.addOperator(sender);
+		std::string joinmsg = sender->getNickname() + " JOIN :" + channame;
+		sendMsg(sender->getFd(), joinmsg);
+		chan.broadcast(joinmsg);
+		if (!chan.getTopic().empty())
+			sendMsg(sender->getFd(), ":server 332 " + sender->getNickname() + " " + channame + " :" + chan.getTopic());
+		else
+			sendMsg(sender->getFd(), ":server 331" + sender->getNickname() + " " + channame + " :No topic is set");
+		std::strings names;
+		std::vector<Client *> members = chan.getClients();
+		for (size_t j = 0; j < members.size(); ++j) {
+			if (chan.isOperator(members[j]))
+				names += "@";
+			names += members[j]->getNickname();
+			if (j + 1 < members.size())
+				names += " ";
+		}
+		sendMsg(sender->getFd(), ":server 353 " + sender->getNickname() + " = " + channame + " :" + names);
+		sendMsg(sender->getFd(), ":server 366 " + sender->getNickname() + " " + channame + " :End of /NAMES list");
+	}
+}
+
 void Server::mode_com(std::vector<std::string> args, Client* sender) {
 	if (!sender->hasClient()) {
 		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
@@ -318,8 +379,6 @@ void Server::nick_com(std::vector<std::string> args, Client* sender) {
 	sender->setHasNick(true);
 }
 
-
-//PART -> Peu avoir plusieurs channel en argument, si c'est le cas faire split par ',' puis quitter 1 par 1
 void Server::part_com(std::vector<std::string> args, Client* sender) {
 	if (!sender->hasClient()) {
 		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
@@ -367,7 +426,6 @@ void parse_commands(std::string message, Client* sender) {
 	if (last != std::string::npos)
     	message = message.substr(0, last + 1);
 	std::vector<std::string> msg = split(message, ' ');
-	//nettoyage du /r/n, a faire seulement apres avoir verifier que la chaine etait complete
     std::transform(msg[0].begin(), msg[0].end(), msg[0].begin(), ::toupper);
 	std::string cmd = msg[0];
 	msg.erase(msg.begin());
@@ -389,6 +447,7 @@ std::vector<std::string> split(std::string s, char c) {
         res.push_back(token);
     }
     res.push_back(s.substr(pos_start));
+	//solution du dessous faites juste pour parse_commands, peut amener des erreurs dans les commandes ou j'utilise split, a tester et modifier
 	if (res.size() == 1)
 		res.push_back("");
     return res;
