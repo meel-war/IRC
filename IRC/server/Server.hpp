@@ -16,6 +16,8 @@
 class Server {
     private:
         int _server_fd;
+        Client* _bot;
+        time_t _lastBotMsg;
 		std::string _name;
         std::string _password;
         std::vector<pollfd> _fds;
@@ -37,6 +39,8 @@ class Server {
 
 
         /* COMMANDES */
+        void initBot();
+        void botMsg();
         void init_commands();
         void parse_commands(std::string message, Client* sender);
         void quit_com(std::vector<std::string> args, Client* sender);

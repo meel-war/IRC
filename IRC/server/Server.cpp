@@ -34,6 +34,8 @@ Server::Server(const std::string &port, const std::string &password)
     }
 
     init_commands();
+    _bot = NULL;
+    _lastBotMsg = time(NULL);
     pollfd server_poll;
     server_poll.fd = _server_fd;
     server_poll.events = POLLIN;
@@ -69,6 +71,7 @@ void Server::pollClients()
             }
         }
     }
+    botMsg();
 }
 
 void Server::acceptClient()
@@ -133,7 +136,7 @@ void Server::removeClient(const int fd)
             for(size_t j = 0; j < _channels.size(); j++)
             {
                 _channels[j]->removeClient(client);
-                if(_channels[j]->getClients().empty())
+                if(_channels[j]->getClients().size() <= 1)
                 {
                     delete _channels[j];
                     _channels.erase(_channels.begin() + j);
@@ -173,6 +176,11 @@ Channel* Server::createChannel(const std::string &name)
     if(ch)
         return(ch);
     Channel* new_channel = new Channel(name);
+    if(_bot)
+    {
+        new_channel->addClient(_bot);
+        new_channel->addOperator(_bot);
+    }
     _channels.push_back(new_channel);
     return(new_channel);
 }
@@ -185,7 +193,49 @@ Client* Server::getClientByFd(const int fd)
     throw std::runtime_error("Client not found");
 }
 
+void Server::initBot()
+{
+    _bot = new Client(-1);
+    _bot->setNickname("BOT");
+    _bot->setClientname("BRAIN BOT");
+    _bot->setHasPass(true);
+    _bot->setHasNick(true);
+    _bot->setHasClient(true);
+}
 
+void Server::botMsg()
+{
+    if(!_bot)
+        return;
+    
+    time_t cur = time(NULL);
+
+    if(cur - _lastBotMsg < 60)
+        return;
+    
+    _lastBotMsg = cur;
+
+    const char* messages[] = {
+        "Noobini Pizzanini",
+        "Trippi Troppi",
+        "Cappuccino Assassino",
+        "Ballerina Cappuccina",
+        "Bombardiro Crocodilo",
+        "Tralalero Tralala"
+    };
+
+    srand(cur);
+    int idx = rand() % 6;
+    std::string msg = messages[idx];
+
+    for(size_t i = 0; i < _channels.size(); i++)
+    {
+        if(_channels[i]->getClients().size() > 1){
+            std::string fullMsg = ":BOT!BRAINBOT@" + _name + " PRIVMSG " + _channels[i]->getName() + " :" + msg;
+            _channels[i]->broadcast(_bot, fullMsg);
+        }
+    }
+}
 
 Server::~Server() 
 {
