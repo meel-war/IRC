@@ -10,6 +10,7 @@ class Channel;
 class Client {
 
     private:
+		int _client_fd;
         std::string _nickname;
         std::string _clientname;
 		std::string _realname;
@@ -18,7 +19,6 @@ class Client {
         bool _has_client;
 		bool _has_realname;
         std::set<Channel*> _joinedChannels;
-        int _client_fd;
         std::string _buffer;
 
     public:

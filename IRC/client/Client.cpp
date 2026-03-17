@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 Client::Client(int fd)
-    : _client_fd(fd), _nickname(""), _clientname(""), _has_pass(false), _has_nick(false), _has_client(false) {}
+    : _client_fd(fd), _nickname(""), _clientname(""), _realname(""), _has_pass(false), _has_nick(false), _has_client(false), _has_realname(false) {}
 
 void Client::joinChannel(Channel *channel)
 {

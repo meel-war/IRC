@@ -153,8 +153,7 @@ const std::string& Channel::getTopic() const
 
 Client *Channel::findClientByNickname(const std::string &nickname) const
 {
-    int i;
-    for(i = 0; i < _clients.size(); i++) {
+    for(size_t i = 0; i < _clients.size(); i++) {
         Client* client = _clients[i];
         if (client->getNickname() == nickname)
             return client;
@@ -164,7 +163,7 @@ Client *Channel::findClientByNickname(const std::string &nickname) const
 
 void Channel::broadcast(Client *sender, const std::string &message)
 {
-    for(int i = 0; i < _clients.size(); i++) {
+    for(size_t i = 0; i < _clients.size(); i++) {
         if (sender != _clients[i])
             sendMsg(_clients[i]->getFd(), message);
     }

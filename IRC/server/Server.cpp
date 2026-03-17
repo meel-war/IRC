@@ -4,9 +4,10 @@ Server::Server(const std::string &port, const std::string &password)
 {
     char* endptr;
     long int port_num = strtol(port.c_str(), &endptr, 10);
-    if(*endptr != '\0' || port_num < 1024 || port_num > 65535)
+    if(*endptr != '\0' || port_num < 1024 || port_num > 65535) {
         throw std::runtime_error("Port must be a number between 1024 and 65535"); // Surement a rendre plus clean (temp)
-    
+	}
+
 	_name = "brainrot";
     _password = password;
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -19,7 +20,7 @@ Server::Server(const std::string &port, const std::string &password)
     struct sockaddr_in addr;
     addr.sin_family = AF_INET; // IPV4
     addr.sin_addr.s_addr = INADDR_ANY; // Ecoute toutes les interfaces reseau : localhost/wifi/ethernet
-    addr.sin_port = htons(std::stoi(port.c_str())); // (htons)Conversion en network byte order pour bind
+    addr.sin_port = htons(port_num); // (htons)Conversion en network byte order pour bind
 
     if(bind(_server_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) // socket_serv prend les attributs de addr
     {
