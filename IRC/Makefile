@@ -1,8 +1,8 @@
 CXX = g++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++17
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
-SRCS = main.cpp server/Server.cpp client/Client.cpp
+SRCS = main.cpp server/Server.cpp Server/Commands.cpp Client/Client.cpp Channel/Channel.cpp
 
 
 OBJS = $(SRCS:.cpp=.o)
