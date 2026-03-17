@@ -5,13 +5,11 @@ void sendMsg(const int& fd, const std::string& msg) {
     send(fd, line.c_str(), line.size(), 0);
 }
 
-static std::string prefix(const Client* c)
-{
-    return ":" + c->getNickname() + "!" + c->getClientname() + "@localhost";
+std::string Server::prefix(const Client* c) {
+    return ":" + c->getNickname() + "!" + c->getClientname() + "@" + _name;
 }
 
-void Server::init_commands()
-{
+void Server::init_commands() {
     _commands["PASS"]    = &Server::pass_com;
     _commands["NICK"]    = &Server::nick_com;
     _commands["USER"]    = &Server::user_com;
@@ -26,13 +24,10 @@ void Server::init_commands()
     _commands["MODE"]    = &Server::mode_com;
 }
 
-void Server::ping_com(std::vector<std::string> args, Client* sender)
-{
+void Server::ping_com(std::vector<std::string> args, Client* sender) {
     std::string token = args.empty() ? "server" : args[0];
     sendMsg(sender->getFd(), ":server PONG server :" + token);
 }
-
-//rajouter des consts a toute mes variables que j'utilise uniquement dans mes commandes (notamment toute mes std::string> target/channame etc)
 
 void Server::join_com(std::vector<std::string> args, Client* sender) {
 	if (!sender->hasClient()) {
@@ -144,7 +139,7 @@ void Server::mode_com(std::vector<std::string> args, Client* sender) {
 				}
 				else {
 					chan->removeMode('k');
-					//chan->removeKey(chan->getKey());
+					chan->removeKey(chan->getKey());
 				}
 				break;
 			case 'o': {
@@ -394,7 +389,7 @@ void Server::part_com(std::vector<std::string> args, Client* sender) {
 	if (!sender->hasClient()) {
 		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
 		return;
-	}if (args[0].empty()) {
+	}if (args.empty()) {
 		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " PART :Not enough parameters");
 	}
 	const std::vector<std::string> channels = split(args[0], ',');
@@ -446,6 +441,9 @@ void Server::parse_commands(std::string message, Client* sender) {
 		(this->*(it->second))(msg, sender);
 }
 
+	//solution du dessous faites juste pour parse_commands, peut amener des erreurs dans les commandes ou j'utilise split, a tester et modifier
+	//si segfault -> vient de ce qui est en commentaire dans split
+
 std::vector<std::string> split(std::string s, char c) {
     size_t pos_start = 0, pos_end;
     std::string token;
@@ -457,9 +455,8 @@ std::vector<std::string> split(std::string s, char c) {
         pos_start = s.find_first_not_of(' ', pos_end);
         res.push_back(token);
     }
-    res.push_back(s.substr(pos_start));
-	//solution du dessous faites juste pour parse_commands, peut amener des erreurs dans les commandes ou j'utilise split, a tester et modifier
-	if (res.size() == 1)
-		res.push_back("");
+   // res.push_back(s.substr(pos_start));
+	// if (res.size() == 1)
+	// 	res.push_back("");
     return res;
 }

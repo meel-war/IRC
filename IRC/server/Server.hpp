@@ -16,6 +16,7 @@
 class Server {
     private:
         int _server_fd;
+		std::string _name;
         std::string _password;
         std::vector<pollfd> _fds;
         std::vector<Client*> _clients;
@@ -50,6 +51,7 @@ class Server {
         void mode_com(std::vector<std::string> args, Client* sender);
 		void join_com(std::vector<std::string> args, Client* sender);
 		void ping_com(std::vector<std::string> args, Client* sender);
+		std::string prefix(const Client* c);
 };
 
 std::vector<std::string> split(std::string s, char c);

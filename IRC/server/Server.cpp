@@ -7,6 +7,7 @@ Server::Server(const std::string &port, const std::string &password)
     if(*endptr != '\0' || port_num < 1024 || port_num > 65535)
         throw std::runtime_error("Port must be a number between 1024 and 65535"); // Surement a rendre plus clean (temp)
     
+	_name = "brainrot";
     _password = password;
     _server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(_server_fd < 0)

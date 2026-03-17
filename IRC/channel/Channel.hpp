@@ -46,4 +46,5 @@ class Channel {
         Client* findClientByNickname(const std::string& nickname) const;
         void broadcast(Client* sender, const std::string& message);
         void updateMode(char c);
+		const std::string getKey() const;
 };
