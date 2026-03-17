@@ -25,8 +25,8 @@ class Client {
         const std::string& getNickname() const;
         const std::string& getClientname() const;
         const int& getFd() const;
-        void setNickname(std::string& nickname);
-        void setClientname(std::string& clientname);
+        void setNickname(const std::string& nickname);
+        void setClientname(const std::string& clientname);
         bool hasPass() const;
         bool hasNick() const;
         bool hasClient() const;

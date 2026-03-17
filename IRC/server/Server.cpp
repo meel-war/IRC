@@ -89,7 +89,7 @@ void Server::acceptClient()
     std::cout << "New client connected: fd " << client_fd << std::endl;
 }
 
-bool Server::returnClient(int client_fd)
+bool Server::returnClient(const int client_fd)
 {
     char buffer[513];
     int bytes = recv(client_fd, buffer, 512, 0); // Norme offi IRC, un msg IRC limite a 512 bytes max
@@ -122,7 +122,7 @@ bool Server::returnClient(int client_fd)
     }
 }
 
-void Server::removeClient(int fd)
+void Server::removeClient(const int fd)
 {
     for(size_t i = 0; i < _clients.size(); i++)
     {
@@ -146,7 +146,7 @@ void Server::removeClient(int fd)
     }
 }
 
-Channel* Server::getChannelByName(std::string &name)
+Channel* Server::getChannelByName(const std::string &name)
 {
     for(size_t i = 0; i < _channels.size(); i++)
     {
@@ -156,7 +156,7 @@ Channel* Server::getChannelByName(std::string &name)
     return(NULL);    
 }
 
-Client* Server::getClientByName(std::string &name)
+Client* Server::getClientByName(const std::string &name)
 {
     for(size_t i = 0; i < _clients.size(); i++)
     {
@@ -166,7 +166,7 @@ Client* Server::getClientByName(std::string &name)
     return(NULL);    
 }
 
-Channel* Server::createChannel(std::string &name)
+Channel* Server::createChannel(const std::string &name)
 {
     Channel* ch = getChannelByName(name);
     if(ch)
@@ -176,7 +176,7 @@ Channel* Server::createChannel(std::string &name)
     return(new_channel);
 }
 
-Client* Server::getClientByFd(int fd)
+Client* Server::getClientByFd(const int fd)
 {
     for(size_t i = 0; i < _clients.size(); i++)
         if(_clients[i]->getFd() == fd)

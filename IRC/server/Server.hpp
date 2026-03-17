@@ -27,12 +27,12 @@ class Server {
         ~Server();
         void pollClients();
         void acceptClient();
-        bool returnClient(int client_fd);
-        Client* getClientByFd(int fd);
-        void removeClient(int fd);
-        Channel* getChannelByName(std::string &name);
-        Channel* createChannel(std::string &name);
-		Client* getClientByName(std::string &name);
+        bool returnClient(const int client_fd);
+        Client* getClientByFd(const int fd);
+        void removeClient(const int fd);
+        Channel* getChannelByName(const std::string &name);
+        Channel* createChannel(const std::string &name);
+		Client* getClientByName(const std::string &name);
 
 
         /* COMMANDES */
@@ -48,6 +48,8 @@ class Server {
         void kick_com(std::vector<std::string> args, Client* sender);
         void topic_com(std::vector<std::string> args, Client* sender);
         void mode_com(std::vector<std::string> args, Client* sender);
+		void join_com(std::vector<std::string> args, Client* sender);
+		void ping_com(std::vector<std::string> args, Client* sender);
 };
 
 std::vector<std::string> split(std::string s, char c);

@@ -23,12 +23,12 @@ const std::string& Client::getClientname() const
     return (_clientname);
 }
 
-void Client::setNickname(std::string& nickname)
+void Client::setNickname(const std::string& nickname)
 {
     _nickname = nickname;
 }
 
-void Client::setClientname(std::string& clientname)
+void Client::setClientname(const std::string& clientname)
 {
     _clientname = clientname;
 }
