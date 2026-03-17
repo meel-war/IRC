@@ -12,9 +12,11 @@ class Client {
     private:
         std::string _nickname;
         std::string _clientname;
+		std::string _realname;
         bool _has_pass;
         bool _has_nick;
         bool _has_client;
+		bool _has_realname;
         std::set<Channel*> _joinedChannels;
         int _client_fd;
         std::string _buffer;
@@ -30,9 +32,13 @@ class Client {
         bool hasPass() const;
         bool hasNick() const;
         bool hasClient() const;
+		bool hasRealName() const;
         void setHasPass(bool pass);
         void setHasNick(bool nick);
         void setHasClient(bool client);
         void appendBuffer(const std::string &new_buffer);
         std::string& getBuffer();
+		std::string& getRealName();
+		void setHasRealName(bool pass);
+		void setRealName(const std::string realname);
 };
