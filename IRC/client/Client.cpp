@@ -72,3 +72,20 @@ std::string& Client::getBuffer()
 {
     return(_buffer);
 }
+
+std::string& Client::getRealName()
+{
+    return(_realname);
+}
+
+bool Client::hasRealName() const {
+	return (_has_realname);
+}
+
+void Client::setHasRealName(bool pass) {
+	_has_realname = pass;
+}
+
+void Client::setRealName(const std::string realname) {
+	_realname = realname;
+}

@@ -65,7 +65,7 @@ void Server::join_com(std::vector<std::string> args, Client* sender) {
 			continue;
 		}
 		chan->addClient(sender);
-		if (chan->getClients().size() == 1)
+		if (chan->getClients().size() <= 2)
 			chan->addOperator(sender);
 		const std::string joinmsg = prefix(sender) + " JOIN :" + channame;
 		sendMsg(sender->getFd(), joinmsg);
@@ -296,7 +296,7 @@ void Server::pass_com(std::vector<std::string> args, Client* sender) {
 		sendMsg(sender->getFd(), ":server 462 " + sender->getNickname() + " :You may not reregister");
 		return ;
 	}
-	if (args[0].empty()) {
+	if (args.empty()) {
 		sendMsg(sender->getFd(), ":server 461 * PASS :Not enough parameters");
 		return ;
 	}
@@ -320,10 +320,11 @@ void Server::user_com(std::vector<std::string> args, Client* sender) {
 		sendMsg(sender->getFd(), ":server 461 * USER :Not enough parameters");
         return;
 	}
-	const std::string username = args[0];
+	const std::string clientname = args[0];
 	const std::string realname = args[3];
-	sender->setNickname(username);
-	sender->setClientname(realname);
+	sender->setClientname(clientname);
+	sender->setRealName(realname);
+	sender->setHasRealName(true);
 	sender->setHasClient(true);
 }
 
@@ -332,7 +333,7 @@ void Server::privmsg_com(std::vector<std::string> args, Client* sender) {
         sendMsg(sender->getFd(), ":server 451 * :You have not registered");
         return;
     }
-	if (args.size() < 2 || args[0].empty() || args[1].empty()) {
+	if (args.size() < 2 || args.empty() || args[1].empty()) {
 		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " PRIVMSG :Not enough parameters");
         return;
 	}
@@ -370,8 +371,8 @@ void Server::nick_com(std::vector<std::string> args, Client* sender) {
 	if (args.empty()) {
 		if (sender->hasNick())
 			sendMsg(sender->getFd(), sender->getNickname());
-		//ligne du dessus pas totalement finit
-		sendMsg(sender->getFd(), ":server 461 * :No nickname given");
+		else
+			sendMsg(sender->getFd(), ":server 431 * :No nickname given");
 		return ;
 	}
 	const std::string newNick = args[0];
