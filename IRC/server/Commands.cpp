@@ -33,7 +33,7 @@ void Server::sendWelcome(Client* client) {
 }
 
 void Server::ping_com(std::vector<std::string> args, Client* sender) {
-    std::string token = args.empty() ? "server" : args[0];
+    std::string token = args.empty() ? sender->getNickname() +  " :No origin specified" : args[0];
     sendMsg(sender->getFd(), ":server PONG server :" + token);
 }
 
@@ -240,7 +240,17 @@ void Server::kick_com(std::vector<std::string> args, Client* sender) {
 	}
 	const std::string channame = args[0];
 	const std::string targetname = args[1];
-	const std::string reason = (args.size() >= 3) ? args[2] : sender->getNickname();
+	std::string reason;
+	if (args.size() < 3)
+		reason = sender->getNickname();
+	else { 
+		for (size_t i = 1; i < args.size(); ++i) {
+			reason += args[i];
+			if (i + 1 < args.size())
+				reason += " ";
+	}
+	}
+
 	Channel* chan = getChannelByName(channame);
 	if (!chan) {
 		sendMsg(sender->getFd(), ":server 403 " + sender->getNickname() + " " + channame + " :No such channel");
@@ -342,6 +352,8 @@ void Server::user_com(std::vector<std::string> args, Client* sender) {
 		sendWelcome(sender);
 }
 
+//privmsg a user de nc a irssi
+
 void Server::privmsg_com(std::vector<std::string> args, Client* sender) {
 	if (!sender->hasClient()) {
         sendMsg(sender->getFd(), ":server 451 * :You have not registered");
@@ -351,11 +363,16 @@ void Server::privmsg_com(std::vector<std::string> args, Client* sender) {
 		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " PRIVMSG :Not enough parameters");
         return;
 	}
+	std::string msg;
+	for (size_t i = 1; i < args.size(); ++i) {
+		msg += args[i];
+		if (i + 1 < args.size())
+			msg += " ";
+	}
 	const std::string target = args[0];
-	const std::string msg = args[1];
 	if (target[0] == '#') {
 		Channel* chan = getChannelByName(target);
-		if (!chan)       {
+		if (!chan) {
             sendMsg(sender->getFd(), ":server 403 " + sender->getNickname() + " " + target + " :No such channel");
             return;
         }
@@ -364,7 +381,7 @@ void Server::privmsg_com(std::vector<std::string> args, Client* sender) {
             return;
         }
 		const std::string finalmsg = prefix(sender) + " PRIVMSG " + target + " :" + msg;
-		chan->broadcast(sender, msg);
+		chan->broadcast(sender, finalmsg);
 	}
 	else { 
 		Client* dest = getClientByName(target);
@@ -410,7 +427,16 @@ void Server::part_com(std::vector<std::string> args, Client* sender) {
 		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " PART :Not enough parameters");
 	}
 	const std::vector<std::string> channels = split(args[0], ',');
-	const std::string reason = (args.size() > 1 ) ? args[1] : sender->getNickname();
+	std::string reason;
+	if (args.size() < 2)
+		reason = sender->getNickname();
+	else {
+		for (size_t i = 1; i < args.size(); ++i) {
+			reason += args[i];
+			if (i + 1 < args.size())
+				reason += " ";
+		}
+	}
 	for (size_t i = 0; i < channels.size(); ++i) {
 		const std::string channame = channels[i];
 		Channel* chan = getChannelByName(args[0]);
@@ -430,8 +456,17 @@ void Server::part_com(std::vector<std::string> args, Client* sender) {
 }
 
 void Server::quit_com(std::vector<std::string> args, Client* sender) {
-	const std::string reason = args.empty() ? "Client quit" : args[0];
-	const std::string quitMsg = prefix(sender) + "QUIT :" + reason;
+	std::string reason;
+	if (args.empty())
+		reason = "Client quit";
+	else {
+		for (size_t i = 1; i < args.size(); ++i) {
+			reason += args[i];
+			if (i + 1 < args.size())
+				reason += " ";
+	}
+	}
+	const std::string quitMsg = prefix(sender) + " QUIT :" + reason;
 
 	std::vector<Channel*>::iterator it = _channels.begin();
 	for(; it != _channels.end(); ++it) {
@@ -444,22 +479,27 @@ void Server::quit_com(std::vector<std::string> args, Client* sender) {
 }
 
 void Server::parse_commands(std::string message, Client* sender) {
-	// /r /n a la fin du msg = msg complet, sinon garder en memoire et lire la suite puir concatener
+	
 	size_t last = message.find_last_not_of("\r\n");
 	if (last != std::string::npos)
     	message = message.substr(0, last + 1);
+	std::string trailing = "";
+    size_t colon = message.find(" :");
+    if (colon != std::string::npos) {
+        trailing = message.substr(colon + 2);
+        message  = message.substr(0, colon);
+    }
 	std::vector<std::string> msg = split(message, ' ');
     std::transform(msg[0].begin(), msg[0].end(), msg[0].begin(), ::toupper);
-	std::string cmd = msg[0];
+	const std::string cmd = msg[0];
 	msg.erase(msg.begin());
+	if (!trailing.empty())
+        msg.push_back(trailing);
 	std::map<std::string, void (Server::*)(std::vector<std::string>, Client*)>::iterator it;
 	it = _commands.find(cmd);
 	if (it != _commands.end())
 		(this->*(it->second))(msg, sender);
 }
-
-	//solution du dessous faites juste pour parse_commands, peut amener des erreurs dans les commandes ou j'utilise split, a tester et modifier
-	//si segfault -> vient de ce qui est en commentaire dans split
 
 std::vector<std::string> split(std::string s, char c) {
     size_t pos_start = 0, pos_end;

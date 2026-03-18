@@ -1,6 +1,6 @@
 CXX = g++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 
 SRCS = main.cpp server/Server.cpp server/Commands.cpp client/Client.cpp channel/Channel.cpp
 
