@@ -289,7 +289,7 @@ void Server::invite_com(std::vector<std::string> args, Client* sender) {
 		sendMsg(sender->getFd(), ":server 482 " + sender->getNickname() + " " + channame + " :You're not channel operator");
 		return;
 	}
-	Client* target = chan->findClientByNickname(targetname);
+	Client* target = chan->getClientByName(targetname);
 	if (!target) {
 		sendMsg(sender->getFd(), ":server 401 " + sender->getNickname() + " " + targetname + " :No such nick");
 		return;

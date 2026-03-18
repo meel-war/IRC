@@ -35,7 +35,8 @@ Server::Server(const std::string &port, const std::string &password)
     }
 
     init_commands();
-    _bot = NULL;
+	initBot();
+    //_bot = NULL;
     _lastBotMsg = time(NULL);
     pollfd server_poll;
     server_poll.fd = _server_fd;
