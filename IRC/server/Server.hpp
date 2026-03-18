@@ -55,6 +55,7 @@ class Server {
         void mode_com(std::vector<std::string> args, Client* sender);
 		void join_com(std::vector<std::string> args, Client* sender);
 		void ping_com(std::vector<std::string> args, Client* sender);
+		void sendWelcome(Client* client);
 		std::string prefix(const Client* c);
 };
 

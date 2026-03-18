@@ -24,6 +24,14 @@ void Server::init_commands() {
     _commands["MODE"]    = &Server::mode_com;
 }
 
+void Server::sendWelcome(Client* client) {
+    const std::string nick = client->getNickname();
+    sendMsg(client->getFd(), ":server 001 " + nick + " :Welcome to the IRC network " + prefix(client));
+    sendMsg(client->getFd(), ":server 002 " + nick + " :Your host is " + _name);
+    sendMsg(client->getFd(), ":server 003 " + nick + " :This server was created today");
+    sendMsg(client->getFd(), ":server 004 " + nick + " " + _name + " ft_irc i t k o l");
+}
+
 void Server::ping_com(std::vector<std::string> args, Client* sender) {
     std::string token = args.empty() ? "server" : args[0];
     sendMsg(sender->getFd(), ":server PONG server :" + token);
@@ -73,7 +81,7 @@ void Server::join_com(std::vector<std::string> args, Client* sender) {
 		if (!chan->getTopic().empty())
 			sendMsg(sender->getFd(), ":server 332 " + sender->getNickname() + " " + channame + " :" + chan->getTopic());
 		else
-			sendMsg(sender->getFd(), ":server 331" + sender->getNickname() + " " + channame + " :No topic is set");
+			sendMsg(sender->getFd(), ":server 331 " + sender->getNickname() + " " + channame + " :No topic is set");
 		std::string names;
 		const std::vector<Client *> members = chan->getClients();
 		for (size_t j = 0; j < members.size(); ++j) {
@@ -116,10 +124,14 @@ void Server::mode_com(std::vector<std::string> args, Client* sender) {
 	size_t argidx = 2;
 	for (size_t i = 0; i < modes.size(); ++i) {
 		char c = modes[i];
-		if (c == '+')
+		if (c == '+') {
 			adding = true;
-		if (c == '-')
+			continue;
+		}
+		if (c == '-') {
 			adding = false;
+			continue;
+		}
 		switch (c) {
 			case 'i':
 				adding ? chan->addMode(c) : chan->removeMode(c);
@@ -326,6 +338,8 @@ void Server::user_com(std::vector<std::string> args, Client* sender) {
 	sender->setRealName(realname);
 	sender->setHasRealName(true);
 	sender->setHasClient(true);
+	if (sender->hasNick())
+		sendWelcome(sender);
 }
 
 void Server::privmsg_com(std::vector<std::string> args, Client* sender) {
@@ -384,6 +398,8 @@ void Server::nick_com(std::vector<std::string> args, Client* sender) {
 	}
 	sender->setNickname(newNick);
 	sender->setHasNick(true);
+	if (sender->hasClient())
+		sendWelcome(sender);
 }
 
 void Server::part_com(std::vector<std::string> args, Client* sender) {
@@ -451,13 +467,11 @@ std::vector<std::string> split(std::string s, char c) {
     std::vector<std::string> res;
 
     while ((pos_end = s.find(c, pos_start)) != std::string::npos) {
-
         token = s.substr(pos_start, pos_end - pos_start);
-        pos_start = s.find_first_not_of(' ', pos_end);
+        pos_start = s.find_first_not_of(c, pos_end);
         res.push_back(token);
     }
-   // res.push_back(s.substr(pos_start));
-	// if (res.size() == 1)
-	// 	res.push_back("");
+	if (pos_start <= s.size())
+		res.push_back(s.substr(pos_start));
     return res;
 }
