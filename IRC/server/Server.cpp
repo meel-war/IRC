@@ -263,6 +263,9 @@ Server::~Server()
     
     for(size_t i = 0; i < _channels.size(); i++)
         delete _channels[i];
+
+    if (_bot)
+        delete _bot;
     
     close(_server_fd);
 }

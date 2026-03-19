@@ -2,7 +2,16 @@
 
 void sendMsg(const int& fd, const std::string& msg) {
     std::string line = msg + "\r\n";
-    send(fd, line.c_str(), line.size(), 0);
+    ssize_t ret = send(fd, line.c_str(), line.size(), 0);
+
+	if (ret < 0)
+	{
+		if (errno == EPIPE || errno == ECONNRESET) {
+			std::cerr << "send failed: client disconnected" << std::endl;
+		}
+		else
+			perror("send");
+	}
 }
 
 std::string Server::prefix(const Client* c) {

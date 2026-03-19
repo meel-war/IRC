@@ -8,10 +8,13 @@ int main(int ac, char **av)
         std::cout << "./irc <port> <password>" << std::endl;
         return (1);
     }
+
+    setupSignal();
+
     try
     {   
         Server server(av[1], av[2]);
-        while(true)
+        while(g_running)
         {
             server.pollClients();
         }

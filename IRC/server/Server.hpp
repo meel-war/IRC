@@ -14,6 +14,9 @@
 #include <algorithm>
 #include <fcntl.h>
 #include <errno.h>
+#include <csignal>
+
+extern volatile sig_atomic_t g_running;
 
 class Server {
     private:
@@ -63,3 +66,5 @@ class Server {
 
 std::vector<std::string> split(std::string s, char c);
 void sendMsg(const int& fd, const std::string& msg);
+void handleSignal(int sig);
+void setupSignal();
