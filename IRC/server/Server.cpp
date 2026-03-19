@@ -16,7 +16,8 @@ Server::Server(const std::string &port, const std::string &password)
         perror("socket");
         throw std::runtime_error("Failed to create socket");
     }
-
+	int opt = 1;
+	setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     struct sockaddr_in addr;
     addr.sin_family = AF_INET; // IPV4
     addr.sin_addr.s_addr = INADDR_ANY; // Ecoute toutes les interfaces reseau : localhost/wifi/ethernet
@@ -45,6 +46,7 @@ Server::Server(const std::string &port, const std::string &password)
     pollfd server_poll;
     server_poll.fd = _server_fd;
     server_poll.events = POLLIN;
+	server_poll.revents = 0;
     _fds.push_back(server_poll);
 
     std::cout << "Server listening on port " << port << std::endl;
@@ -85,8 +87,9 @@ void Server::acceptClient()
     sockaddr_in client_addr;
     socklen_t addr_len = sizeof(client_addr);
     int client_fd = accept(_server_fd, (struct sockaddr*)&client_addr, &addr_len);
-    if(client_fd < 0)
+    if(client_fd < 0) {
         throw std::runtime_error("Accept failed");
+	}
 	int flags = fcntl(client_fd, F_GETFL, 0);
 	if(flags != -1)
 		fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
@@ -97,6 +100,7 @@ void Server::acceptClient()
     pollfd new_client_poll;
     new_client_poll.fd = client_fd;
     new_client_poll.events = POLLIN;
+	new_client_poll.revents = 0;
     _fds.push_back(new_client_poll);
 
     std::cout << "New client connected: fd " << client_fd << std::endl;

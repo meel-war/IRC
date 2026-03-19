@@ -423,8 +423,10 @@ void Server::part_com(std::vector<std::string> args, Client* sender) {
 	if (!sender->hasClient()) {
 		sendMsg(sender->getFd(), ":server 451 * :You have not registered");
 		return;
-	}if (args.empty()) {
+	}
+	if (args.empty()) {
 		sendMsg(sender->getFd(), ":server 461 " + sender->getNickname() + " PART :Not enough parameters");
+		return;
 	}
 	const std::vector<std::string> channels = split(args[0], ',');
 	std::string reason;
