@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by [pribolzi](https://github.com/pribolzi), [meel-war](https://github.com/meel-war), [mubersan](https://github.com/mubersan).*
+*This project has been created as part of the 42 curriculum by [pribolzi], [meel-war], [mubersan].*
 
 ## Description
 
