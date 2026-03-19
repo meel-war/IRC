@@ -12,6 +12,8 @@
 #include <map>
 #include <sstream>
 #include <algorithm>
+#include <fcntl.h>
+#include <errno.h>
 
 class Server {
     private:
