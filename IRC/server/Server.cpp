@@ -35,10 +35,7 @@ Server::Server(const std::string &port, const std::string &password)
         throw std::runtime_error("Listen failed");
     }
 
-	int flags = fcntl(_server_fd, F_GETFL, 0);
-	if(flags != -1)
-		fcntl(_server_fd, F_SETFL, flags | O_NONBLOCK);
-	
+	fcntl(_server_fd, F_SETFL, O_NONBLOCK);
     init_commands();
 	initBot();
     _lastBotMsg = time(NULL);
@@ -89,9 +86,7 @@ void Server::acceptClient()
     if(client_fd < 0) {
         throw std::runtime_error("Accept failed");
 	}
-	int flags = fcntl(client_fd, F_GETFL, 0);
-	if(flags != -1)
-		fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
+	fcntl(client_fd, F_SETFL, O_NONBLOCK);
     Client* new_client = new Client(client_fd);
     _clients.push_back(new_client);
 
@@ -110,8 +105,8 @@ bool Server::returnClient(const int client_fd)
     int bytes = recv(client_fd, buffer, 512, 0); // Norme offi IRC, un msg IRC limite a 512 bytes max
 	if(bytes < 0)
 	{
-		if(errno == EAGAIN || errno == EWOULDBLOCK) //  EAGAIN pas de donnees a lire, EWOULDBLOCK = EAGAIN
-			return(true);
+		// if(errno == EAGAIN || errno == EWOULDBLOCK) //  EAGAIN pas de donnees a lire, EWOULDBLOCK = EAGAIN
+		// 	return(true);
 		std::cout << "Client error: fd " << client_fd << std::endl;
         removeClient(client_fd);
         return false;

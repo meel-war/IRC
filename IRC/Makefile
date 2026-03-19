@@ -7,8 +7,7 @@ SRCS = main.cpp server/Server.cpp server/Commands.cpp client/Client.cpp channel/
 
 OBJS = $(SRCS:.cpp=.o)
 
-# Nom de l'exécutable
-NAME = irc_server
+NAME = ircserv
 
 all: $(NAME)
 
