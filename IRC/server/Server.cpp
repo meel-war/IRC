@@ -5,7 +5,7 @@ Server::Server(const std::string &port, const std::string &password)
     char* endptr;
     long int port_num = strtol(port.c_str(), &endptr, 10);
     if(*endptr != '\0' || port_num < 1024 || port_num > 65535) {
-        throw std::runtime_error("Port must be a number between 1024 and 65535"); // Surement a rendre plus clean (temp)
+        throw std::runtime_error("Port must be a number between 1024 and 65535");
 	}
 
 	_name = "brainrot";
@@ -19,17 +19,17 @@ Server::Server(const std::string &port, const std::string &password)
 	int opt = 1;
 	setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     struct sockaddr_in addr;
-    addr.sin_family = AF_INET; // IPV4
-    addr.sin_addr.s_addr = INADDR_ANY; // Ecoute toutes les interfaces reseau : localhost/wifi/ethernet
-    addr.sin_port = htons(port_num); // (htons)Conversion en network byte order pour bind
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port = htons(port_num);
 
-    if(bind(_server_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) // socket_serv prend les attributs de addr
+    if(bind(_server_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
     {
         perror("bind");
         throw std::runtime_error("Bind failed");
     }
 
-    if(listen(_server_fd, 4096) < 0) // met le socket_serv en ecoute/passif
+    if(listen(_server_fd, 4096) < 0)
     {
         perror("listen");
         throw std::runtime_error("Listen failed");
@@ -41,7 +41,6 @@ Server::Server(const std::string &port, const std::string &password)
 	
     init_commands();
 	initBot();
-    //_bot = NULL;
     _lastBotMsg = time(NULL);
     pollfd server_poll;
     server_poll.fd = _server_fd;
@@ -66,11 +65,11 @@ void Server::pollClients()
         {
             if(_fds[i].fd == _server_fd)
             {
-                acceptClient(); // nouveau client, ajouter poll_fd
+                acceptClient();
             }
             else
             {
-                if(!returnClient(_fds[i].fd)) // client existant, msg
+                if(!returnClient(_fds[i].fd))
                 {
                     close(_fds[i].fd);
                     _fds.erase(_fds.begin() + i);
@@ -96,7 +95,6 @@ void Server::acceptClient()
     Client* new_client = new Client(client_fd);
     _clients.push_back(new_client);
 
-    //ajout dans le tableau des fds_poll en msg entrant
     pollfd new_client_poll;
     new_client_poll.fd = client_fd;
     new_client_poll.events = POLLIN;
@@ -112,7 +110,7 @@ bool Server::returnClient(const int client_fd)
     int bytes = recv(client_fd, buffer, 512, 0); // Norme offi IRC, un msg IRC limite a 512 bytes max
 	if(bytes < 0)
 	{
-		if(errno == EAGAIN || errno == EWOULDBLOCK)
+		if(errno == EAGAIN || errno == EWOULDBLOCK) //  EAGAIN pas de donnees a lire, EWOULDBLOCK = EAGAIN
 			return(true);
 		std::cout << "Client error: fd " << client_fd << std::endl;
         removeClient(client_fd);
@@ -130,11 +128,11 @@ bool Server::returnClient(const int client_fd)
         Client* sender = getClientByFd(client_fd);
         if(!sender)
             return(false);
-        sender->appendBuffer(buffer); // append la suite au buffer si le precedent msg ne se termine pas par \r\n
+        sender->appendBuffer(buffer); // Append la suite au buffer si le precedent msg ne se termine pas par \r\n
         std::string &clientBuffer = sender->getBuffer();
         size_t pos;
 
-        while((pos = clientBuffer.find("\r\n")) != std::string::npos) //Trouve les \r\n dans le buffer
+        while((pos = clientBuffer.find("\r\n")) != std::string::npos) // Trouve les \r\n dans le buffer
         {
             std::string command = clientBuffer.substr(0, pos);
             clientBuffer.erase(0, pos + 2);
@@ -216,7 +214,7 @@ Client* Server::getClientByFd(const int fd)
 
 void Server::initBot()
 {
-    _bot = new Client(-1);
+    _bot = new Client(-1); // FD mis a -1, je simule le bot en tant que client, socket inutile
     _bot->setNickname("BOT");
     _bot->setClientname("BRAIN BOT");
     _bot->setHasPass(true);
