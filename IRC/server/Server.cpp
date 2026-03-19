@@ -53,14 +53,11 @@ Server::Server(const std::string &port, const std::string &password)
 
 void Server::pollClients()
 {
-    int ret = poll(_fds.data(), _fds.size(), -1);
-    if(ret < 0)
-    {
-        // if (errno == EINTR)
-        //     return;
-        perror("poll");
-        return ;
-    }
+    if (poll(_fds.data(), _fds.size(), -1) < 0)
+	{
+		perror("poll");
+		return ;
+	}
 
     for(size_t i = 0; i < _fds.size(); i++)
     {
