@@ -56,8 +56,8 @@ void Server::pollClients()
     int ret = poll(_fds.data(), _fds.size(), -1);
     if(ret < 0)
     {
-        if (errno == EINTR)
-            return;
+        // if (errno == EINTR)
+        //     return;
         perror("poll");
         return ;
     }
@@ -259,6 +259,12 @@ void Server::botMsg()
     }
 }
 
+void Server::closeFd() {
+	for (size_t i = 0; i < _fds.size(); ++i) {
+		close(_fds[i].fd);
+	}
+}
+
 Server::~Server() 
 {
     for(size_t i = 0; i < _clients.size(); i++)
@@ -269,6 +275,6 @@ Server::~Server()
 
     if (_bot)
         delete _bot;
-    
+    closeFd();
     close(_server_fd);
 }

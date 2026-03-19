@@ -41,6 +41,7 @@ class Server {
         Channel* getChannelByName(const std::string &name);
         Channel* createChannel(const std::string &name);
 		Client* getClientByName(const std::string &name);
+		void closeFd();
 
 
         /* COMMANDES */
