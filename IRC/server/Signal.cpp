@@ -23,5 +23,4 @@ void setupSignal()
     sigemptyset(&ign.sa_mask);
     ign.sa_flags = 0;
     ign.sa_handler = SIG_IGN;
-    sigaction(SIGPIPE, &ign, NULL);
 }
