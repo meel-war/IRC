@@ -158,8 +158,8 @@ AI assistance (Claude by Anthropic) was used throughout the project as a debuggi
 
 ## Authors
 
-- **pribolzi** - Server infrastructure, socket management, poll() implementation, bot system
-- **meel-war** - IRC command implementation, protocol handling
+- **pribolzi** - IRC command implementation, protocol handling
+- **meel-war** - Server infrastructure, socket management, poll() implementation, bot system
 - **mubersan** - Client and Channel class design and implementation
 
 ---
