@@ -160,7 +160,7 @@ AI assistance (Claude by Anthropic) was used throughout the project as a debuggi
 
 - **pribolzi** - IRC command implementation, protocol handling
 - **meel-war** - Server infrastructure, socket management, poll() implementation, bot system
-- **mubersan** - Client and Channel class design and implementation
+- **mubersan** - Client and Channel class design and implementation, signal handling
 
 ---
 
