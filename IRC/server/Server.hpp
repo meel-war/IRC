@@ -63,9 +63,9 @@ class Server {
 		void ping_com(std::vector<std::string> args, Client* sender);
 		void sendWelcome(Client* client);
 		std::string prefix(const Client* c);
-		void sendMsg(const int& fd, const std::string& msg);
 };
 
 std::vector<std::string> split(std::string s, char c);
+void sendMsg(const int& fd, const std::string& msg);
 void handleSignal(int sig);
 void setupSignal();

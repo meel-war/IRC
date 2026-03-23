@@ -105,8 +105,8 @@ bool Server::returnClient(const int client_fd)
     int bytes = recv(client_fd, buffer, 512, 0); // Norme offi IRC, un msg IRC limite a 512 bytes max
 	if(bytes < 0)
 	{
-		// if(errno == EAGAIN || errno == EWOULDBLOCK) //  EAGAIN pas de donnees a lire, EWOULDBLOCK = EAGAIN
-		// 	return(true);
+		if(errno == EAGAIN || errno == EWOULDBLOCK) //  EAGAIN pas de donnees a lire, EWOULDBLOCK = EAGAIN
+			return(true);
 		std::cout << "Client error: fd " << client_fd << std::endl;
         removeClient(client_fd);
         return false;

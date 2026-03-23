@@ -1,22 +1,8 @@
 #include "Server.hpp"
 
-void Server::sendMsg(const int& fd, const std::string& msg) {
+void sendMsg(const int& fd, const std::string& msg) {
     std::string line = msg + "\r\n";
-    int bytes = send(fd, line.c_str(), line.size(), 0);
-	if(bytes < 0)
-	{
-		if(errno == EAGAIN || errno == EWOULDBLOCK) //  EAGAIN pas de donnees a lire, EWOULDBLOCK = EAGAIN
-			return ;
-		std::cout << "Client error: fd " << fd << std::endl;
-        removeClient(fd);
-        return ;
-	}
-    if(bytes == 0)
-    {
-        std::cout << "Client disconnected: fd " << fd << std::endl;
-        removeClient(fd);
-        return ;
-    }
+    send(fd, line.c_str(), line.size(), 0);
 }
 
 std::string Server::prefix(const Client* c) {
