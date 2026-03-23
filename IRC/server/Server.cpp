@@ -34,8 +34,8 @@ Server::Server(const std::string &port, const std::string &password)
         perror("listen");
         throw std::runtime_error("Listen failed");
     }
-
 	fcntl(_server_fd, F_SETFL, O_NONBLOCK);
+	
     init_commands();
 	initBot();
     _lastBotMsg = time(NULL);

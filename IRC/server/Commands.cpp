@@ -352,8 +352,6 @@ void Server::user_com(std::vector<std::string> args, Client* sender) {
 		sendWelcome(sender);
 }
 
-//privmsg a user de nc a irssi
-
 void Server::privmsg_com(std::vector<std::string> args, Client* sender) {
 	if (!sender->hasClient()) {
         sendMsg(sender->getFd(), ":server 451 * :You have not registered");

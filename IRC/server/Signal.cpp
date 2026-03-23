@@ -6,7 +6,6 @@ void handleSignal(int sig)
 {
     (void)sig;
     std::cout << std::endl;
-    //std::cout << "Signal received\n"; // pour tester;
     g_running = 0;
 }
 
@@ -18,9 +17,4 @@ void setupSignal()
     sa.sa_handler = handleSignal;
     sigaction(SIGINT, &sa, NULL);
     sigaction(SIGTERM, &sa, NULL);
-
-    struct sigaction ign;
-    sigemptyset(&ign.sa_mask);
-    ign.sa_flags = 0;
-    ign.sa_handler = SIG_IGN;
 }

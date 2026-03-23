@@ -78,7 +78,6 @@ void Channel::removeKey(const std::string &key)
 {
 	if (checkKey(key))
    		_key = "";
-	//sinon mettre message d'erreur rpl
 }
 
 bool Channel::checkKey(const std::string &input) const
