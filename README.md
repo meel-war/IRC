@@ -96,7 +96,7 @@ PRIVMSG #general :Hello everyone!
 
 ## Project Structure
 ```
-ft_irc/
+irc/
 ├── server/
 │   ├── Server.hpp          # Server class declaration
 │   ├── Server.cpp          # Server implementation
@@ -142,18 +142,10 @@ The bot is implemented as a virtual client (fd = -1) without an actual socket co
 - [poll() man page](https://man7.org/linux/man-pages/man2/poll.2.html) - Linux manual for poll()
 - [fcntl() man page](https://man7.org/linux/man-pages/man2/fcntl.2.html) - File control operations
 
-### C++ References
-- [C++98 Standard](https://www.lirmm.fr/~ducour/Doc-objets/ISO+IEC+14882-1998.pdf) - Official C++98 specification
-- [CPP Reference](https://en.cppreference.com/) - C++ language reference
-
 ### Testing Tools
 - [irssi](https://irssi.org/) - Terminal-based IRC client
-- [HexChat](https://hexchat.github.io/) - Graphical IRC client
 - [nc (netcat)](https://man7.org/linux/man-pages/man1/ncat.1.html) - Network debugging tool
-
-### AI Usage
-AI assistance (Claude by Anthropic) was used throughout the project as a debugging and review tool: identifying segfaults and valgrind warnings (uninitialized `pollfd` fields, missing `return` after error checks), understanding IRC compliance requirements (numeric replies such as `001 RPL_WELCOME` needed for irssi to establish a connection), spotting logic bugs in command implementations, and advising on socket configuration (`SO_REUSEADDR`, non-blocking I/O). All architecture decisions, feature implementation, and final code were written and validated by the project authors.
-
+- 
 ---
 
 ## Authors
