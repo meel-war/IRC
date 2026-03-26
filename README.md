@@ -158,4 +158,4 @@ The bot is implemented as a virtual client (fd = -1) without an actual socket co
 
 ## License
 
-This project is part of the 42 School curriculum and is intended for educational purposes only.
+This project is part of the 42 School curriculum and is intended for educational purposes only
